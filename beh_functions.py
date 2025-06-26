@@ -36,97 +36,118 @@ def downsample_behavior(df, frequency_seconds=0.5):
     return df_downsampled
 
 #The following function will keep only necessary behavior information and create new information for reward training days
-def process_behavior_reward(df, 
-                    columns_of_interest=['TIME (S)', 'FREEZING', 'IN PLATFORM', 'NOSE POKE ACTIVE',
-                                       'CUE LIGHT ACTIVE', 'SPEED (M/S)', 
-                                       'FEEDER ACTIVE', 'NEW SPEAKER ACTIVE'],
-                    cue_onsets = [300, 360, 420, 480, 540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080, 1140, 
-                                  1200, 1260, 1320, 1380, 1440, 1500, 1560, 1620, 1680, 1740, 1800, 1860, 1920],
-                    cue_duration = 30,
-                    iti_duration=60):
-    """
-    Args:
-    df : downsampled behavior data
-    columns_of_interest: columns to keep from original behavior dataframe
-    cs_plus_onsets: list of onset times (in seconds) for CS+ trials
-    cs_minus_onsets: list of onset times (in seconds) for CS- trials  
-    iti_duration: duration of ITI periods in seconds (default 60)
-    """
-
-    df_downsampled = df.copy()
-
-    df_downsampled.columns = df_downsampled.columns.str.upper()
-
-    df_subset = df_downsampled[columns_of_interest].copy()
-
-    #Set time as the index
-    df_subset.set_index('TIME (S)', inplace=True)
-
-    #Set Cue Light On Column
-    df_subset['CUE LIGHT ACTIVE'] = 0
-    for onset in cue_onsets:
-        df_subset.loc[onset:onset+cue_duration, 'CUE LIGHT ACTIVE'] = 1
-
-    #Set ITI columns for ITIs
-    df_subset['ITI'] = 0
-    for onset in cue_onsets:
-        df_subset.loc[onset + cue_duration:onset + iti_duration + cue_duration, 'ITI'] = 1 
-    
-    return df_subset
-
-#The following function will keep only necessary behavior information and create new information for conflict days
-def process_behavior_conflict(df, 
+def process_behavior(df, 
                     columns_of_interest=['TIME (S)', 'FREEZING', 'IN PLATFORM', 'NOSE POKE ACTIVE',
                                        'CUE LIGHT ACTIVE', 'SPEED (M/S)', 
                                        'FEEDER ACTIVE', 'NEW SPEAKER ACTIVE', 'NEW SHOCKER ACTIVE'],
-                    cs_pl_onsets=[300, 570, 750, 840, 1020, 1290, 1470, 1560, 1740, 2010, 
-                                  2100, 2370, 2550, 2640, 2820, 3090, 3270, 3360, 3540, 3810], 
-                    cs_min_onsets=[390, 480, 660, 930, 1110, 1200, 1380, 1650, 1830, 1920, 
-                                   2190, 2280, 2460, 2730, 2910, 3000, 3180, 3450, 3630, 3720],
-                    cs_duration=30,
-                    iti_duration=60):
+                    command_df = None,
+                    cue_onsets = None,
+                    cues=['NONE GIVEN'],
+                    cue_duration = 30):
     """
     Args:
-    df : downsampled behavior data
+    df : downsampled behavior dataframe
     columns_of_interest: columns to keep from original behavior dataframe
-    cs_pl_onsets: list of onset times (in seconds) for CS+ trials
-    cs_min_onsets: list of onset times (in seconds) for CS- trials
-    cs_duration: length of CS+ Presentations
-    iti_duration: duration of ITI periods in seconds (default 60)
+    cue_onsets: Optional dictionary of nsets matched with necessary cue to manually create columns.
+        Ideally this will be unneeded.  
+    cues: list of task cues as strings to produce in resulting dataframe. For reward stage this is usually just when the cue light is active,
+        but could be more than one in the case of two-port PMA, for example. 
+        If no cues need to be fixed or added, leave as default.
+    cue_duration: duration of cue periods in seconds (default 30)
     """
 
-    #Create a copy of input dataframe to ensure original isn't altered
     df_downsampled = df.copy()
 
-    #Make all columns uppercase to erase possibility of case-matching issues
     df_downsampled.columns = df_downsampled.columns.str.upper()
 
-    #Subset input dataframe to contain only columns of interest
     df_subset = df_downsampled[columns_of_interest].copy()
 
     #Set time as the index
     df_subset.set_index('TIME (S)', inplace=True)
 
-    #Set CS+ Active time periods
-    df_subset['CS+'] = 0
-    for onset in cs_pl_onsets:
-        df_subset.loc[onset:onset + cs_duration, 'CS+'] = 1 
-
-    #Set CS+ Active time periods
-    df_subset['CS-'] = 0
-    for onset in cs_min_onsets:
-        df_subset.loc[onset:onset + cs_duration, 'CS-'] = 1 
-
-    #Set ITI columns for ITIs following CS+
-    df_subset['ITI+'] = 0
-    for onset in cs_pl_onsets:
-        df_subset.loc[onset + cs_duration:onset + cs_duration + iti_duration, 'ITI+'] = 1 #Alter the 60 to length of ITI if not 60 seconds.
+    #Use the dataframe that receives anymaze outputs to create timestamps if one is given
+    if command_df is not None:
+        #Capitalize the column names in the command dataframe and create a copy
+        command_df_proc=command_df.copy()
+        command_df_proc.columns = command_df_proc.columns.str.upper()
+        #Set time as index for proper alignment and processing
+        command_df_proc.set_index('TIME (S)', inplace=True)
+        #Iterate through each cue in list of cues 
+        for cue in cues:
+            #If the cue is in the command dataframe then copy over that column data
+            if cue in command_df_proc:
+                #Initialize the column for the cue
+                df_subset[cue] = 0
+                #Set the values for the cue column equal to the command file so they all match
+                df_subset[cue] = command_df_proc[cue]
+            #If the cue is not in command dataframe then use the given timestamps to create necessary df
+            else:
+                #Notify user that this column is being created manually
+                print(f'Task phase {cue} not in command dataframe, using timestamps to create')
+                try:
+                    df_subset[cue] = 0
+                    for onset in cue_onsets[cue]:
+                        df_subset.loc[onset:onset+cue_duration, cue] = 1
+                except:
+                    print(f'Warning! No timestamps given for {cue}, please correct command dataframe or give timestamps.')
+    else:
+        for cue in cues:
+            #If the cue list is left blank it can be assumed that all dataframes already have appropriate cues, no cue processing done
+            if cue == 'NONE GIVEN':
+                break
+            else:
+                print(f'Using timestamps to create task phase {cue}')
+                if cue_onsets and cue in cue_onsets:  # null check
+                    df_subset[cue] = 0
+                    for onset in cue_onsets[cue]:
+                        df_subset.loc[onset:onset+cue_duration, cue] = 1
+                else:
+                    print(f'Warning! No timestamps given for {cue}, please give timestamps.')
     
-    #Set ITI Columns for ITIs following CS-
-    df_subset['ITI-'] = 0
-    for onset in cs_min_onsets:
-        df_subset.loc[onset + cs_duration:onset + cs_duration + iti_duration, 'ITI-'] = 1 #Alter the 60 to length of ITI if not 60 seconds.
+    #Create ITI columns using newly added task cue data
+    #Initialize lists to collect off of the onset and offset timestamps
+    iti_onsets_all = []
+    iti_offsets_all = []
+
+    #Initialize ITI column with 0's
+    df_subset['ITI'] = 0
+
+    #Iterate through the cues, finding the offsets and onsets to use for ITI onsets and offsets
+    for cue in cues:
+        #Specify offset as when the cue column ends
+        offset_mask = (df_subset[cue] == 0) & (df_subset[cue].diff() < 0)
+        iti_onsets = df_subset[offset_mask].index
+        #Append the offset to list of offsets
+        iti_onsets_all.extend(iti_onsets)
+
+        #Specify onset as index before cue column begines
+        onset_mask = (df_subset[cue] > 0) & (df_subset[cue].diff() > 0)
+        #Identify indices where cue onset occurs
+        mask_indices = df_subset[onset_mask].index
+        iti_offsets = []
+        #File through selected indices and take the value just before it
+        for idx in mask_indices:
+            pos = df_subset.index.get_loc(idx)
+            if pos > 0:  # Make sure we're not at the first row
+                iti_offsets.append(df_subset.index[pos - 1])
+        #Append onset to list of onsets
+        iti_offsets_all.extend(iti_offsets)
+
+    # Sort the lists to ensure proper pairing
+    iti_onsets_all.sort()
+    iti_offsets_all.sort()
     
+    # Fix the loop logic
+    for onset in iti_onsets_all:
+        offset = next((off for off in iti_offsets_all if off > onset), None)
+        
+        if offset is not None and offset - onset > 20:  # Fix the condition logic
+            df_subset.loc[onset:offset, 'ITI'] = 1
+        elif offset is None:  # Only fill to end if no offset found
+            df_subset.loc[onset:, 'ITI'] = 1
+    
+    print(df_subset.loc[1468:1472])
+        
     return df_subset
 
 #The following function will import csvs with an optional setting for filtering by a name fragment in the csv
@@ -273,7 +294,7 @@ def average_around_timestamp(df_subset, event_column, value_column, time_before=
     """
     
     # Get onset timestamps (0->1 transitions)
-    onset_mask = (df_subset[event_column] == 1) & (df_subset[event_column].diff() == 1)
+    onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
     onset_timestamps = df_subset[onset_mask].index
     
     # Check that there are timestamps for this column
