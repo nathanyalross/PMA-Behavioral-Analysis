@@ -1,6 +1,5 @@
-import beh_functions
 from beh_functions import downsample_behavior
-from beh_functions import process_behavior_reward
+from beh_functions import process_behavior
 from beh_functions import import_csvs
 from beh_functions import average_around_timestamp
 from beh_functions import export_csvs
@@ -21,8 +20,20 @@ print('Behavior Data Downsampled!')
 
 #Process all downsampled data keeping file name associated
 processed_dfs={}
+
+#Create a list out of all the downsampled dataframes to use for our command dataframe
+ds_dfs=list(downsampled_dfs.values())
+#Select command dataframe out of the list to use in our processing function
+com_df=ds_dfs[2]
+
+#Specify cues to be processed and timestamps for cues unspecified in AnyMaze File for data processing if needed
+#cues=[]
+#cue_onsets={}
+#cue_onsets[]=[]
+#cue_onsets[]=[]
+
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior_reward(data)
+    df_processed = process_behavior(data,cues=['CUE LIGHT ACTIVE'])
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
