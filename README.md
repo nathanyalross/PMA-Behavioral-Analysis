@@ -52,4 +52,4 @@ In powershell enter `py process_rew_data.py`, this will run the script to proces
 
 If processing discrimination phase data, enter `py process_disc_data.py`
 
-Use same `py scripy.py` logic to run any other script!
+Use same `py script.py` logic to run any other script!
