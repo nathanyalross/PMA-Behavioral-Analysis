@@ -1,7 +1,9 @@
 import pandas as pd
+import sys
 from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 from beh_functions import downsample_behavior
-from beh_functions import process_behavior_conflict
+from beh_functions import process_behavior
 from beh_functions import import_csvs
 from beh_functions import task_strat
 
@@ -22,7 +24,7 @@ print('Behavior Data Downsampled!')
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior_conflict(data)
+    df_processed = process_behavior(data)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
