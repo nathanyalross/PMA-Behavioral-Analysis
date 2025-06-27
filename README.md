@@ -4,7 +4,7 @@ A python based behavioral analysis pipeline designed to analyze mouse behavior i
 ## Code Installation 
 To best utilize and customize this pipeline I recommend downloading and using Visual Studio Code at https://code.visualstudio.com/download.
 
-Once Visual Studio code is installed you can clone the git repo using web URL or download a zip file containing all of the code under the Code tab above.
+Once Visual Studio code is installed you can clone the git repo using web URL or download a zip file containing all of the code under the 'Code' tab above.
 
 ## UV
 Once the pipeline is installed on your computer you will need to download UV to ensure you have everything you need for the code to run properly.
@@ -13,25 +13,25 @@ Once the pipeline is installed on your computer you will need to download UV to 
 Install UV through the powershell using installation instructions outlined here: https://docs.astral.sh/uv/getting-started/installation/.
 
 Check that UV is installed by checking the version:
-'uv --version'
+`uv --version`
 
 ### Installing dependencies through UV
-Once UV is installed to your computer, you can install all needed dependencies with 'uv sync' 
+Once UV is installed to your computer, you can install all needed dependencies with `uv sync`
 
-After downloading the dependencies, you want to initiate a local virtual environment with 'uv venv'
+After downloading the dependencies initiate a local virtual environment with `uv venv`
 
-Finally, to check that you have all necessary dependencies, run 'uv pip list' and make sure you have everything specified in the pyproject.toml file
+To check that you have all necessary dependencies run `uv pip list` and make sure you have everything specified in the 'pyproject.toml' file
 
 ## Pipeline Inputs 
-The input to this pipeline is behavior timeseries CSVs from AnyMaze. Include all outputs that contain behavioral information and cue information.
+The input to this pipeline is behavior timeseries CSVs, this was initially designed for AnyMaze outputs. Include all outputs that contain behavioral information and cue information.
 
 ## Outputs
 This pipeline will have default outputs that are easily customizable. These include:
 
-1) Timeseries data that is averaged across a session and then between mice around a certain event, such as a cue.
-2) Histograms generated around certain cues or across an entire session to see how behavior develops across a session.
-3) Scripts to calculate the AUC of timeseries data.
-4) Task strategy score calculations to show how mice are behaving in different phases of the task.
+1) Timeseries data that is averaged across a session around a repeated event, such as a cue.
+2) Histograms generated across specified cues or across an entire session.
+3) Calculations of the AUC of timeseries data.
+4) Task strategy score calculations to show how mice are behaving in different phases of the task - are they 'compulsive' or 'aversive'?
 5) Platform mount transition analysis to see how mice are approaching the platform during different phases of the task.
 
 The functions this pipeline uses is designed to be easily adjusted for case-by-case use.
