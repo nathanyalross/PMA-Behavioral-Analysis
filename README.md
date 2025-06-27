@@ -36,7 +36,20 @@ This pipeline will have default outputs that are easily customizable. These incl
 
 The functions this pipeline uses is designed to be easily adjusted for case-by-case use.
 
-# Designed use and adaptability
+## Designed use and adaptability
 The default scripts are designed to be used in a two-tone discrimation PMA task, where there are two stages: the reward learning stage where mice learn to nosepoke during cue light presentation for reward, and a discrimination stage where mice are presented tones and cue-lights together with two different frequency tones predicting a shock or no shock.
 
 All functions are extensively documented to outline how to adapt parameters to your use. Make sure to read through all scripts and adjust as needed. Beginner-level python experience is helpful to adjust parameters.
+
+## The basics - using a pre-made pipeline in VS Code
+Navigate to File->Open Folder
+
+Open Project Folder
+
+Open powershell with ctr+`; type cd\folder_for_PMA_variation
+
+In powershell enter `py process_rew_data.py`, this will run the script to process timeseries data for reward phase.
+
+If processing discrimination phase data, enter `py process_disc_data.py`
+
+Use same `py scripy.py` logic to run any other script!
