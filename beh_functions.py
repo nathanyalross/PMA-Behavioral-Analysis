@@ -145,9 +145,7 @@ def process_behavior(df,
             df_subset.loc[onset:offset, 'ITI'] = 1
         elif offset is None:  # Only fill to end if no offset found
             df_subset.loc[onset:, 'ITI'] = 1
-    
-    print(df_subset.loc[1468:1472])
-        
+            
     return df_subset
 
 #The following function will import csvs with an optional setting for filtering by a name fragment in the csv
