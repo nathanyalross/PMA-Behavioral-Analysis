@@ -281,58 +281,122 @@ def export_csvs(df_dict, filename, export_path,
     return consolidated_df
 
 #Function to average specified data around specified events, creating a timeseries
-def average_around_timestamp(df_subset, event_column, value_column, time_before=15, time_after=45):
+def average_around_timestamp(df_subset, value_column, event_column, event_column_2 = None, merge = None, time_before=15, time_after=45):
     """
     Args:
-    df_subset : subsetted behavior data
-    event_column : column name to detect events (0->1 transitions)
+    df_subset : subsetted behavior dataframe
     value_column : column of data to quantify
+    event_column : column name to detect events (0->1 transitions), if 2 given and merge is 'N' then this is the timestamp values that are kept
+    event_column_2 : optional additional column name to detect events and compare to column 1 to either include or exclude overlap
+    merge : if 2 event columns are specified this will determine if overlapping events are analyzed (Y) or excluded (N)
     time_before : time before onset to include in analysis (seconds)
     time_after : time after onset to include in analysis (seconds)
     """
     
-    # Get onset timestamps (0->1 transitions)
-    onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
-    onset_timestamps = df_subset[onset_mask].index
+    #Check that there is only one specified event column
+    if event_column_2 is None:
+        # Get onset timestamps (0->1 transitions)
+        onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
+        onset_timestamps = df_subset[onset_mask].index
+        
+        # Check that there are timestamps for this column
+        if len(onset_timestamps) == 0:
+            print(f"No onsets found for {event_column}")
+            return pd.DataFrame()
     
-    # Check that there are timestamps for this column
-    if len(onset_timestamps) == 0:
-        print(f"No onsets found for {event_column}")
-        return pd.DataFrame()
+    else:
+        #Get onset timestamps for both event columns
+        onset_mask_1= (df_subset[event_column]>0) & (df_subset[event_column].diff() > 0)
+        onset_timestamps_1 = df_subset[onset_mask_1].index
+
+        # Check that there are timestamps for this column
+        if len(onset_timestamps_1) == 0:
+            print(f"No onsets found for {event_column}")
+            return pd.DataFrame()
+
+        onset_mask_2= (df_subset[event_column_2]>0) & (df_subset[event_column_2].diff() > 0)
+        onset_timestamps_2 = df_subset[onset_mask_2].index
+
+        # Check that there are timestamps for this column
+        if len(onset_timestamps_2) == 0:
+            print(f"No onsets found for {event_column}")
+            return pd.DataFrame()
+        
+        #initiate lists for iteration of timestamps
+        onset_timestamps=[]
+        used_indices_1 = set()
+        used_indices_2 = set()
+
+        #Look through timestamps and select necessary ones depending on merge value
+        if merge == 'Y':
+            for i, ts1 in enumerate (onset_timestamps_1):
+                for j, ts2 in enumerate (onset_timestamps_2):
+                    #skip if either number has already been used
+                    if i in used_indices_1 or j in used_indices_2:
+                        continue
+
+                    #Check if numbers are equal or within threshold distance
+                    if abs(ts1-ts2) <= 20: #Will look to see if timestamps are within 20 seconds of each other
+                        #add lower number to list
+                        onset_timestamps.append(min(ts1, ts2))
+                        #mark both indices as used
+                        used_indices_1.add(i)
+                        used_indices_2.add(j)
+                        break #move to next number in onset_timestamps_1
+        
+        #If merge value is set to no, timestamps from the first event column are kept
+        elif merge == 'N':
+            for i, ts1 in enumerate (onset_timestamps_1):
+                for j, ts2 in enumerate (onset_timestamps_2):
+                    #skip if either number has already been used
+                    if i in used_indices_1 or j in used_indices_2:
+                        continue
+
+                    #Check if numbers are equal or within threshold distance
+                    if abs(ts1-ts2) > 20: #Will look to see if timestamps are outside 20 seconds of each other
+                        #add timestamps from first event column to list
+                        onset_timestamps.append(ts1)
+                        #mark index for ts1 as used so that it is not included again
+                        used_indices_1.add(i)
+                        break #move to next number in onset_timestamps_1
+        
+        else:
+            return print('Please set proper merge value, Y to keep overlapping timestamps and N to exclude overlapping timestamps.')
     
-    # Store all event-aligned data
+    #Store all event-aligned data
     aligned_data = []
-    
+        
     # Loop through each onset timestamp
     for timestamp in onset_timestamps:
         # Define time window around the event
         start_time = timestamp - time_before
         end_time = timestamp + time_after
-        
+            
         # Select data within the time window
         mask = (df_subset.index >= start_time) & (df_subset.index <= end_time)
 
         window_data = df_subset.loc[mask, value_column].copy()
-        
+            
         if len(window_data) == 0:
             continue
-            
+                
         # Create relative time index (seconds from onset)
         relative_times = df_subset.loc[mask].index - timestamp
-        
+            
         # Create a series with relative time as index
         event_series = pd.Series(window_data.values, index=relative_times)
         aligned_data.append(event_series)
-    
+        
     if not aligned_data:
         print("No valid data windows found")
         return pd.DataFrame()
-    
+        
     # Combine all events into a DataFrame
     result_df = pd.DataFrame(aligned_data).T
-    
+        
     # Calculate mean across all events
-    mean_timeseries = result_df.mean(axis=1)
+    mean_timeseries = result_df.mean(axis=1)    
+
     
     return mean_timeseries
 
