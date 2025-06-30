@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 from beh_functions import downsample_behavior
 from beh_functions import process_behavior
 from beh_functions import import_csvs
@@ -19,27 +22,19 @@ for name, data in dfs.items():
     downsampled_dfs[name] = df_downsampled
 print('Behavior Data Downsampled!')
 
-#Create a list out of all the downsampled dataframes to use for our command dataframe if needed
-#ds_dfs=list(downsampled_dfs.values())
-#Select command dataframe out of the list to use in our processing function
-#com_df=ds_dfs[2]
-
-#Specify cues to be processed and timestamps for cues unspecified in AnyMaze File for data processing if needed
-cue_disc=['CS+','CS-']
-cue_onsets_disc={}
-cue_onsets_disc['CS+']=[300, 570, 750, 840, 1020, 1290, 1470, 1560, 1740, 2010, 
-            2100, 2370, 2550, 2640, 2820, 3090, 3270, 3360, 3540, 3810]
-cue_onsets_disc['CS-']=[390, 480, 660, 930, 1110, 1200, 1380, 1650, 1830, 1920, 
-            2190, 2280, 2460, 2730, 2910, 3000, 3180, 3450, 3630, 3720]
+#Select necessary command file
+command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
 
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data,cue_onsets=cue_onsets_disc,cues=cue_disc)
+    df_processed = process_behavior(data, command_df=command_df)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
-if input('Analyze Nosepoke Timeseries during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
+#Create new function to dynamically set timestamps depending on co-presentation state
+
+#if input('Analyze Nosepoke Timeseries during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze nosepoking timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
@@ -66,7 +61,7 @@ if input('Analyze Nosepoke Timeseries during CS Presentation data? please respon
 
     export_csvs(averaged_data,filename,export_path)
 
-if input('Analyze Platform Timeseries during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
+#if input('Analyze Platform Timeseries during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
@@ -93,7 +88,7 @@ if input('Analyze Platform Timeseries during CS Presentation data? please respon
 
     export_csvs(averaged_data,filename,export_path)
 
-if input('Analyze Nosepoke Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
+#if input('Analyze Nosepoke Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze nosepoke histogram data around CS+ copresentation
     binned_data={}
     for name, data in processed_dfs.items():
@@ -120,7 +115,7 @@ if input('Analyze Nosepoke Histogram during CS Presentation data? please respond
 
     export_csvs(binned_data,filename,export_path)
 
-if input('Analyze Platform Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
+#if input('Analyze Platform Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform histogram data around CS+ copresentation
     binned_data={}
     for name, data in processed_dfs.items():

@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 from beh_functions import downsample_behavior
 from beh_functions import process_behavior
 from beh_functions import import_csvs
@@ -18,22 +21,13 @@ for name, data in dfs.items():
     downsampled_dfs[name] = df_downsampled
 print('Behavior Data Downsampled!')
 
+#Select necessary command file
+command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
+
 #Process all downsampled data keeping file name associated
 processed_dfs={}
-
-#Create a list out of all the downsampled dataframes to use for our command dataframe
-ds_dfs=list(downsampled_dfs.values())
-#Select command dataframe out of the list to use in our processing function
-com_df=ds_dfs[2]
-
-#Specify cues to be processed and timestamps for cues unspecified in AnyMaze File for data processing if needed
-#cues=[]
-#cue_onsets={}
-#cue_onsets[]=[]
-#cue_onsets[]=[]
-
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data,cues=['CUE LIGHT ACTIVE'])
+    df_processed = process_behavior(data, command_df=command_df)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 

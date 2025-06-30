@@ -22,10 +22,18 @@ for name, data in dfs.items():
     downsampled_dfs[name] = df_downsampled
 print('Behavior Data Downsampled!')
 
+#Create Dictionary of timestamps to be used for processing
+disc_cues=['CS+','CS-']
+disc_cues_onset={}
+disc_cues_onset['CS+'] = [300, 570, 750, 840, 1020, 1290, 1470, 1560, 1740, 2010, 
+                2100, 2370, 2550, 2640, 2820, 3090, 3270, 3360, 3540, 3810]
+disc_cues_onset['CS-'] = [390, 480, 660, 930, 1110, 1200, 1380, 1650, 1830, 1920, 
+                2190, 2280, 2460, 2730, 2910, 3000, 3180, 3450, 3630, 3720]
+
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data)
+    df_processed = process_behavior(data, cue_onsets = disc_cues_onset, cues=disc_cues)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
