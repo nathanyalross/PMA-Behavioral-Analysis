@@ -292,7 +292,7 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
     """
     
     # Get onset timestamps (0->1 transitions)
-    onset_mask = (df_subset[event_column] == 1) & (df_subset[event_column].diff() == 1)
+    onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
     onset_timestamps = df_subset[onset_mask].index
     
     # Check that there are timestamps for this column
@@ -737,3 +737,44 @@ def overlap_beh_processing(df):
         df_proc.loc[onset:onset+45, 'LIGHT THEN TONE'] = 1
 
     return df_proc
+
+#Function to count number of avoided shocks
+def avoid_shock(df, shock_length=2.5):
+    """
+    Args:
+    df: downsampled and processed dataframe
+    shock_length: length of administered shock (in seconds)
+    
+    Returns:
+    shock_list: list of cumulative avoided shock counts
+    """
+    # Create mask for shock onsets
+    shock_mask = (df['NEW SHOCKER ACTIVE'] > 0) & (df['NEW SHOCKER ACTIVE'].diff() > 0)
+    shock_timestamps = df[shock_mask].index
+
+    # Check that there are onsets
+    if len(shock_timestamps) == 0:
+        print("No shock onsets found")
+        return []
+    
+    # Store shock outcomes
+    shock_count = 0
+    shock_list = []
+
+    # Loop through timestamps and determine if shock was avoided
+    for timestamp in shock_timestamps:
+        # Get the time window for this shock
+        end_time = timestamp + shock_length
+        shock_window = df.loc[timestamp:end_time, 'IN PLATFORM']
+        
+        # Calculate actual time duration and occupancy
+        shock_duration = len(shock_window)
+        time_on_plat = shock_window.sum()
+        
+        # Check if shock was avoided (with tolerance for minor gaps)
+        if time_on_plat == shock_duration:
+            shock_count += 1
+            
+        shock_list.append(shock_count)
+
+    return shock_list
