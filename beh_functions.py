@@ -281,138 +281,58 @@ def export_csvs(df_dict, filename, export_path,
     return consolidated_df
 
 #Function to average specified data around specified events, creating a timeseries
-def average_around_timestamp(df_subset, value_column, event_column, event_column_2 = None, merge = None, time_before=15, time_after=45):
+def average_around_timestamp(df_subset,value_column, event_column, time_before=15, time_after=45):
     """
     Args:
-    df_subset : subsetted behavior dataframe
+    df_subset : subsetted behavior data
+    event_column : column name to detect events (0->1 transitions)
     value_column : column of data to quantify
-    event_column : column name to detect events (0->1 transitions), if 2 given and merge is 'N' then this is the timestamp values that are kept
-    event_column_2 : optional additional column name to detect events and compare to column 1 to either include or exclude overlap
-    merge : if 2 event columns are specified this will determine if overlapping events are analyzed for exact co-presentations ('Exact'),
-      loose copresentations of less than 20 second separation ('Loose') or only on-overlapping events ('N')
     time_before : time before onset to include in analysis (seconds)
     time_after : time after onset to include in analysis (seconds)
     """
     
-    #Check that there is only one specified event column
-    if event_column_2 is None:
-        # Get onset timestamps (0->1 transitions)
-        onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
-        onset_timestamps = df_subset[onset_mask].index
-        
-        # Check that there are timestamps for this column
-        if len(onset_timestamps) == 0:
-            print(f"No onsets found for {event_column}")
-            return pd.DataFrame()
+    # Get onset timestamps (0->1 transitions)
+    onset_mask = (df_subset[event_column] == 1) & (df_subset[event_column].diff() == 1)
+    onset_timestamps = df_subset[onset_mask].index
     
-    else:
-        #Get onset timestamps for both event columns
-        onset_mask_1= (df_subset[event_column]>0) & (df_subset[event_column].diff() > 0)
-        onset_timestamps_1 = df_subset[onset_mask_1].index
-
-        # Check that there are timestamps for this column
-        if len(onset_timestamps_1) == 0:
-            print(f"No onsets found for {event_column}")
-            return pd.DataFrame()
-
-        onset_mask_2= (df_subset[event_column_2]>0) & (df_subset[event_column_2].diff() > 0)
-        onset_timestamps_2 = df_subset[onset_mask_2].index
-
-        # Check that there are timestamps for this column
-        if len(onset_timestamps_2) == 0:
-            print(f"No onsets found for {event_column}")
-            return pd.DataFrame()
-        
-        #initiate lists for iteration of timestamps
-        onset_timestamps=[]
-        used_indices_1 = set()
-        used_indices_2 = set()
-
-        #Look through timestamps and select necessary ones depending on merge value
-        if merge == 'Loose':
-            for i, ts1 in enumerate (onset_timestamps_1):
-                for j, ts2 in enumerate (onset_timestamps_2):
-                    #skip if either number has already been used
-                    if i in used_indices_1 or j in used_indices_2:
-                        continue
-
-                    #Check if numbers are equal or within threshold distance
-                    if 5 < abs(ts1-ts2) <= 20: #Will look to see if timestamps are between 5 and 20 seconds of each other
-                        #add lower number to list
-                        onset_timestamps.append(min(ts1, ts2))
-                        #mark both indices as used
-                        used_indices_1.add(i)
-                        used_indices_2.add(j)
-                        break #move to next number in onset_timestamps_1
-        
-        #If merge value is set to exact, matching timestamps are kept
-        elif merge == 'Exact':
-            for i, ts1 in enumerate (onset_timestamps_1):
-                for j, ts2 in enumerate (onset_timestamps_2):
-                    #skip if either number has already been used
-                    if i in used_indices_1 or j in used_indices_2:
-                        continue
-
-                    #Check if numbers are equal or within threshold distance
-                    if abs(ts1-ts2) <= 1 : #Will look to see if timestamps are within a second of each other
-                        #add timestamps from first event column to list
-                        onset_timestamps.append(ts1)
-                        #mark index for ts1 as used so that it is not included again
-                        used_indices_1.add(i)
-                        break #move to next number in onset_timestamps_1
-
-        #If merge value is set to loose, timestamps from the first event column are kept
-        elif merge == 'N':
-            for i, ts1 in enumerate (onset_timestamps_1):
-                for j, ts2 in enumerate (onset_timestamps_2):
-                    #skip if either number has already been used
-                    if i in used_indices_1 or j in used_indices_2:
-                        continue
-
-                    #Check if numbers are equal or within threshold distance
-                    if abs(ts1-ts2) > 20: #Will look to see if timestamps are outside 20 seconds of each other
-                        #add timestamps from first event column to list
-                        onset_timestamps.append(ts1)
-                        #mark index for ts1 as used so that it is not included again
-                        used_indices_1.add(i)
-                        break #move to next number in onset_timestamps_1
-        
-        else:
-            return print('Please set proper merge value: N to exclude overlapping timestamps, Loose to only include partially overlapping cues, and Exact to include only completely overlapping cues.')
+    # Check that there are timestamps for this column
+    if len(onset_timestamps) == 0:
+        print(f"No onsets found for {event_column}")
+        return pd.DataFrame()
     
-    #Store all event-aligned data
+    # Store all event-aligned data
     aligned_data = []
-
+    
     # Loop through each onset timestamp
     for timestamp in onset_timestamps:
         # Define time window around the event
         start_time = timestamp - time_before
         end_time = timestamp + time_after
-            
+        
         # Select data within the time window
         mask = (df_subset.index >= start_time) & (df_subset.index <= end_time)
 
         window_data = df_subset.loc[mask, value_column].copy()
-            
+        
         if len(window_data) == 0:
             continue
-                
+            
         # Create relative time index (seconds from onset)
         relative_times = df_subset.loc[mask].index - timestamp
-            
+        
         # Create a series with relative time as index
         event_series = pd.Series(window_data.values, index=relative_times)
         aligned_data.append(event_series)
-        
+    
     if not aligned_data:
         print("No valid data windows found")
         return pd.DataFrame()
-        
+    
     # Combine all events into a DataFrame
     result_df = pd.DataFrame(aligned_data).T
-        
+    
     # Calculate mean across all events
-    mean_timeseries = result_df.mean(axis=1)    
+    mean_timeseries = result_df.mean(axis=1)
     
     return mean_timeseries
 
@@ -482,7 +402,7 @@ def behavior_binning(df, value_column, event_column=None, bin_size=30, beh_freq 
         return pd.Series(data=sum_nosepoke, index=time_axis)
     
 #Function to calculate the auc from input csvs that have are outputs from above average around timestamps function
-def calculate_auc(df, start=0, end=5):
+def calculate_auc(df, start=0, end=30):
     """
     Function to calculate the AUC over a designated timeframe from an already processed dataset
 
@@ -705,3 +625,115 @@ def task_strat(df, event_column=None, beh_freq=2):
 
     #Finally, return this value in a list along with total TOP and NP
     return [task_score, (plat_time/beh_freq), (np_time/beh_freq)]
+
+#Function to further process variable PMA by creating Light Only, Tone Only, Copresentation, Tone then Light, and Light then Tone binary columns
+def overlap_beh_processing(df):
+    """ 
+    Args:
+    df: processed dataframe
+    
+    Returns:
+    df_proc: further processed dataframe to include additional binary columns
+    """
+
+    df_proc = df.copy()
+
+    #Utilize NEW SPEAKER ACTIVE AND CUE LIGHT ON columns and the overlap of the columns to create new columns
+    #Get onset timestamps for both event columns
+    light_mask = (df_proc['CUE LIGHT ACTIVE'] > 0) & (df_proc['CUE LIGHT ACTIVE'].diff() > 0)
+    light_timestamps= df_proc[light_mask].index
+
+    # Check that there are timestamps for this column
+    if len(light_timestamps) == 0:
+        print(f"No onsets found for 'CUE LIGHT ACTIVE'")
+        return pd.DataFrame()
+
+    tone_mask= (df_proc['NEW SPEAKER ACTIVE']>0) & (df_proc['NEW SPEAKER ACTIVE'].diff() > 0)
+    tone_timestamps = df_proc[tone_mask].index
+
+    # Check that there are timestamps for this column
+    if len(tone_timestamps) == 0:
+        print(f"No onsets found for {'NEW SPEAKER ACTIVE'}")
+        return pd.DataFrame()
+        
+    #initiate lists for iteration of timestamps
+    ltt_timestamps=[]
+    ttl_timestamps=[]
+    light_only_timestamps=[]
+    tone_only_timestamps=[]
+    cop_timestamps=[]
+    used_light = set()
+    used_tone = set()
+
+    #Look through timestamps and set light then tone onsets
+    for i, light in enumerate (light_timestamps):
+        for j, tone in enumerate (tone_timestamps):
+            #Create copresentation timestamps
+            if abs(light-tone) <=1 :
+                #Add timestamps from light column to copresentation timestamp list
+                cop_timestamps.append(light)
+                #Mark index for light as used so that it is not included again
+                used_light.add(i)
+                used_tone.add(j)
+                break #move to next number in onset_timestamps_1
+
+            #Create light then tone timestamps
+            elif -20 < light-tone < -5: #If the light presentation comes first
+                #Add timestamp from light column to ltt column
+                ltt_timestamps.append(light)
+                #Mark index for both indices as used
+                used_light.add(i)
+                used_tone.add(j)
+                break #move to next number in onset_timestamps_1
+            
+            #Create tone then light timestamps
+            elif 5 < light-tone < 20: #If the tone presentation comes first
+                #Add timestamp from light column to ltt column
+                ttl_timestamps.append(tone)
+                #Mark index for light as used so that it is not included again
+                used_light.add(i)
+                used_tone.add(j)
+                break #move to next number in onset_timestamps_1
+
+            #Create light only timestamps
+            elif j == (len(tone_timestamps)-1): #If values don't overlap add to light only list on last iteration
+                #add lower number to list
+                light_only_timestamps.append(light)
+                #Mark index for light as used so that it is not included again
+                used_light.add(i)
+                break #move to next number in onset_timestamps_1
+
+            else:
+                print(f'None type for light onset {i}, {light}')
+    
+    #Create tone only timestamps
+    for i, tone in enumerate (tone_timestamps):
+        if i in used_tone:
+            continue
+        else:
+            tone_only_timestamps.append(tone)
+
+    #Create columns for each presentation type
+    df_proc['LIGHT ONLY'] = 0
+    df_proc['TONE ONLY'] = 0
+    df_proc['CO-PRESENTATION'] = 0
+    df_proc['TONE THEN LIGHT'] = 0
+    df_proc['LIGHT THEN TONE'] = 0
+
+    #Use onset timestamps to fill dataframe
+    for onset in light_only_timestamps:
+        df_proc.loc[onset:onset+30, 'LIGHT ONLY'] = 1
+    
+    for onset in tone_only_timestamps:
+        df_proc.loc[onset:onset+30, 'TONE ONLY'] = 1
+
+    for onset in cop_timestamps:
+        df_proc.loc[onset:onset+30, 'CO-PRESENTATION'] = 1
+
+    for onset in ttl_timestamps:
+        df_proc.loc[onset:onset+45, 'TONE THEN LIGHT'] = 1
+
+    for onset in ltt_timestamps:
+        df_proc.loc[onset:onset+45, 'LIGHT THEN TONE'] = 1
+
+    return df_proc
