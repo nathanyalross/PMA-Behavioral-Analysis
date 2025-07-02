@@ -38,7 +38,7 @@ print('Behavior Data Processed!')
     #Analyze nosepoking timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS+','NOSE POKE ACTIVE')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CS+')
         averaged_data[name] = df_averaged
     print('Timeseries CS+ Nosepoke Data Analyzed!')
 
@@ -51,7 +51,7 @@ print('Behavior Data Processed!')
     #Analyze nosepoking timeseries data around CS- copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS-','NOSE POKE ACTIVE')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CS-')
         averaged_data[name] = df_averaged
     print('Timeseries CS- Nosepoke Data Analyzed!')
 
@@ -65,7 +65,7 @@ print('Behavior Data Processed!')
     #Analyze platform timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS+','IN PLATFORM')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','CS+')
         averaged_data[name] = df_averaged
     print('Timeseries CS+ Platform Data Analyzed!')
 
@@ -78,7 +78,7 @@ print('Behavior Data Processed!')
     #Analyze platform timeseries data around CS- copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS-','IN PLATFORM')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','CS-')
         averaged_data[name] = df_averaged
     print('Timeseries CS- Platform Data Analyzed!')
 

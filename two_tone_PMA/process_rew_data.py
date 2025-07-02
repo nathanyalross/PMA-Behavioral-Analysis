@@ -34,7 +34,7 @@ print('Behavior Data Processed!')
 #Analyze nosepoking timeseries data around cue light activity
 averaged_data={}
 for name, data in processed_dfs.items():
-    df_averaged = average_around_timestamp(data,'CUE LIGHT ACTIVE','NOSE POKE ACTIVE')
+    df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CUE LIGHT ACTIVE')
     averaged_data[name] = df_averaged
 print('Timeseries Analyzed!')
 
