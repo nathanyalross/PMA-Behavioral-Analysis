@@ -27,7 +27,7 @@ command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes an
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data, command_df=command_df)
+    df_processed = process_behavior(data, command_df=command_df, cues = ['NEW SPEAKER ACTIVE','CUE LIGHT ACTIVE'])
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 

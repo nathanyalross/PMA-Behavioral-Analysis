@@ -75,12 +75,14 @@ def process_behavior(df,
         #Iterate through each cue in list of cues 
         for cue in cues:
             #If the cue is in the command dataframe then copy over that column data
-            if cue in command_df_proc:
+            if cue in command_df_proc.columns:
                 #Initialize the column for the cue
                 df_subset[cue] = 0
                 #Set the values for the cue column equal to the command file so they all match
                 df_subset[cue] = command_df_proc[cue]
             #If the cue is not in command dataframe then use the given timestamps to create necessary df
+            elif cue == 'NONE GIVEN':
+                break
             else:
                 #Notify user that this column is being created manually
                 print(f'Task phase {cue} not in command dataframe, using timestamps to create')
@@ -292,7 +294,7 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
     """
     
     # Get onset timestamps (0->1 transitions)
-    onset_mask = (df_subset[event_column] > 0) & (df_subset[event_column].diff() > 0)
+    onset_mask = ((df_subset[event_column] > 0) & (df_subset[event_column] < 1) & (df_subset[event_column].diff() > 0)) | (df_subset[event_column]==1) & (df_subset[event_column].diff()==1)
     onset_timestamps = df_subset[onset_mask].index
     
     # Check that there are timestamps for this column
@@ -749,7 +751,7 @@ def avoid_shock(df, shock_length=2.5):
     shock_list: list of cumulative avoided shock counts
     """
     # Create mask for shock onsets
-    shock_mask = (df['NEW SHOCKER ACTIVE'] > 0) & (df['NEW SHOCKER ACTIVE'].diff() > 0)
+    shock_mask = (df['NEW SHOCKER ACTIVE'] > 0) & (df['NEW SHOCKER ACTIVE'] < 1) & (df['NEW SHOCKER ACTIVE'].diff() >0)
     shock_timestamps = df[shock_mask].index
 
     # Check that there are onsets
@@ -777,4 +779,6 @@ def avoid_shock(df, shock_length=2.5):
             
         shock_list.append(shock_count)
 
-    return shock_list
+    shock_df= pd.DataFrame(shock_list)
+
+    return shock_df
