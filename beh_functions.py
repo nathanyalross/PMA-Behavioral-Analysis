@@ -288,7 +288,8 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
     value_column : column of data to quantify
     event_column : column name to detect events (0->1 transitions), if 2 given and merge is 'N' then this is the timestamp values that are kept
     event_column_2 : optional additional column name to detect events and compare to column 1 to either include or exclude overlap
-    merge : if 2 event columns are specified this will determine if overlapping events are analyzed (Y) or excluded (N)
+    merge : if 2 event columns are specified this will determine if overlapping events are analyzed for exact co-presentations ('Exact'),
+      loose copresentations of less than 20 second separation ('Loose') or only on-overlapping events ('N')
     time_before : time before onset to include in analysis (seconds)
     time_after : time after onset to include in analysis (seconds)
     """
@@ -328,7 +329,7 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
         used_indices_2 = set()
 
         #Look through timestamps and select necessary ones depending on merge value
-        if merge == 'Y':
+        if merge == 'Loose':
             for i, ts1 in enumerate (onset_timestamps_1):
                 for j, ts2 in enumerate (onset_timestamps_2):
                     #skip if either number has already been used
@@ -336,7 +337,7 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
                         continue
 
                     #Check if numbers are equal or within threshold distance
-                    if abs(ts1-ts2) <= 20: #Will look to see if timestamps are within 20 seconds of each other
+                    if 5 < abs(ts1-ts2) <= 20: #Will look to see if timestamps are between 5 and 20 seconds of each other
                         #add lower number to list
                         onset_timestamps.append(min(ts1, ts2))
                         #mark both indices as used
@@ -344,7 +345,23 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
                         used_indices_2.add(j)
                         break #move to next number in onset_timestamps_1
         
-        #If merge value is set to no, timestamps from the first event column are kept
+        #If merge value is set to exact, matching timestamps are kept
+        elif merge == 'Exact':
+            for i, ts1 in enumerate (onset_timestamps_1):
+                for j, ts2 in enumerate (onset_timestamps_2):
+                    #skip if either number has already been used
+                    if i in used_indices_1 or j in used_indices_2:
+                        continue
+
+                    #Check if numbers are equal or within threshold distance
+                    if abs(ts1-ts2) <= 1 : #Will look to see if timestamps are within a second of each other
+                        #add timestamps from first event column to list
+                        onset_timestamps.append(ts1)
+                        #mark index for ts1 as used so that it is not included again
+                        used_indices_1.add(i)
+                        break #move to next number in onset_timestamps_1
+
+        #If merge value is set to loose, timestamps from the first event column are kept
         elif merge == 'N':
             for i, ts1 in enumerate (onset_timestamps_1):
                 for j, ts2 in enumerate (onset_timestamps_2):
@@ -361,11 +378,11 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
                         break #move to next number in onset_timestamps_1
         
         else:
-            return print('Please set proper merge value, Y to keep overlapping timestamps and N to exclude overlapping timestamps.')
+            return print('Please set proper merge value: N to exclude overlapping timestamps, Loose to only include partially overlapping cues, and Exact to include only completely overlapping cues.')
     
     #Store all event-aligned data
     aligned_data = []
-        
+
     # Loop through each onset timestamp
     for timestamp in onset_timestamps:
         # Define time window around the event
