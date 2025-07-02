@@ -396,7 +396,6 @@ def average_around_timestamp(df_subset, value_column, event_column, event_column
         
     # Calculate mean across all events
     mean_timeseries = result_df.mean(axis=1)    
-
     
     return mean_timeseries
 

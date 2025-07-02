@@ -1,6 +1,8 @@
+# Import modules to allow upstream integration of beh_functions file
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
+
 from beh_functions import downsample_behavior
 from beh_functions import process_behavior
 from beh_functions import import_csvs
@@ -41,7 +43,7 @@ if input('Analyze Nosepoke Timeseries during CS Presentation data? please respon
     #Analyze nosepoking timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS+','NOSE POKE ACTIVE')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CS+',)
         averaged_data[name] = df_averaged
     print('Timeseries CS+ Nosepoke Data Analyzed!')
 
@@ -54,7 +56,7 @@ if input('Analyze Nosepoke Timeseries during CS Presentation data? please respon
     #Analyze nosepoking timeseries data around CS- copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS-','NOSE POKE ACTIVE')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CS-')
         averaged_data[name] = df_averaged
     print('Timeseries CS- Nosepoke Data Analyzed!')
 
@@ -68,7 +70,7 @@ if input('Analyze Platform Timeseries during CS Presentation data? please respon
     #Analyze platform timeseries data around CS+ copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS+','IN PLATFORM')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','CS+')
         averaged_data[name] = df_averaged
     print('Timeseries CS+ Platform Data Analyzed!')
 
@@ -81,7 +83,7 @@ if input('Analyze Platform Timeseries during CS Presentation data? please respon
     #Analyze platform timeseries data around CS- copresentation
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'CS-','IN PLATFORM')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','CS-')
         averaged_data[name] = df_averaged
     print('Timeseries CS- Platform Data Analyzed!')
 
