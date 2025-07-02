@@ -1,111 +1,214 @@
-#Function to further process variable PMA by creating Light Only, Tone Only, Copresentation, Tone then Light, and Light then Tone binary columns
-def overlap_beh_processing(df):
-    """ 
-    Args:
-    df: processed dataframe
-    
-    Returns:
-    df_proc: further processed dataframe to include additional binary columns
-    """
+import pandas as pd
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+from beh_functions import downsample_behavior
+from beh_functions import process_behavior
+from beh_functions import import_csvs
+from beh_functions import task_strat
+from beh_functions import overlap_beh_processing
 
-    df_proc = df.copy()
+#input folder of behavior files
+file_path = input("Please enter file path with raw behavior exports: ")
 
-    #Utilize NEW SPEAKER ACTIVE AND CUE LIGHT ON columns and the overlap of the columns to create new columns
-    #Get onset timestamps for both event columns
-    light_mask = (df_proc['CUE LIGHT ACTIVE'] > 0) & (df_proc['CUE LIGHT ACTIVE'].diff() > 0)
-    light_timestamps= df_proc[light_mask].index
+#Import necesary files as designated
+dfs = import_csvs(file_path)
+print('Data Imported')
 
-    # Check that there are timestamps for this column
-    if len(light_timestamps) == 0:
-        print(f"No onsets found for 'CUE LIGHT ACTIVE'")
-        return pd.DataFrame()
+#Downsample all files keeping the file name associated
+downsampled_dfs = {}
+for name, data in dfs.items():
+    df_downsampled= downsample_behavior(data)
+    downsampled_dfs[name] = df_downsampled
+print('Behavior Data Downsampled!')
 
-    tone_mask= (df_proc['NEW SPEAKER ACTIVE']>0) & (df_proc['NEW SPEAKER ACTIVE'].diff() > 0)
-    tone_timestamps = df_proc[tone_mask].index
+#Select necessary command file
+command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
 
-    # Check that there are timestamps for this column
-    if len(tone_timestamps) == 0:
-        print(f"No onsets found for {'NEW SPEAKER ACTIVE'}")
-        return pd.DataFrame()
-        
-    #initiate lists for iteration of timestamps
-    ltt_timestamps=[]
-    ttl_timestamps=[]
-    light_only_timestamps=[]
-    tone_only_timestamps=[]
-    cop_timestamps=[]
-    used_light = set()
-    used_tone = set()
+#Process all downsampled data keeping file name associated
+processed_dfs={}
+for name, data in downsampled_dfs.items():
+    df_processed = process_behavior(data, command_df=command_df)
+    processed_dfs[name] = df_processed
 
-    #Look through timestamps and set light then tone onsets
-    for i, light in enumerate (light_timestamps):
-        for j, tone in enumerate (tone_timestamps):
-            #Create copresentation timestamps
-            if abs(light-tone) <=1 :
-                #Add timestamps from light column to copresentation timestamp list
-                cop_timestamps.append(light)
-                #Mark index for light as used so that it is not included again
-                used_light.add(i)
-                used_tone.add(j)
-                break #move to next number in onset_timestamps_1
+#Continue with secondary processing to create columns for each presentation type
+processed_var_dfs={}
+for name, data in processed_dfs.items():
+    df_var = overlap_beh_processing(data)
+    processed_var_dfs[name] = df_var
+print('Behavior Data Processed!')
 
-            #Create light then tone timestamps
-            elif -20 < light-tone < -5: #If the light presentation comes first
-                #Add timestamp from light column to ltt column
-                ltt_timestamps.append(light)
-                #Mark index for both indices as used
-                used_light.add(i)
-                used_tone.add(j)
-                break #move to next number in onset_timestamps_1
-            
-            #Create tone then light timestamps
-            elif 5 < light-tone < 20: #If the tone presentation comes first
-                #Add timestamp from light column to ltt column
-                ttl_timestamps.append(tone)
-                #Mark index for light as used so that it is not included again
-                used_light.add(i)
-                used_tone.add(j)
-                break #move to next number in onset_timestamps_1
+#Analyze task strategies for all mice during light only periods
+strat_data={}
+for name, data in processed_dfs.items():
+    strat_list = task_strat(data,'LIGHT ONLY')
+    strat_data[name] = strat_list
+print('Task Strategy analyzed for light only periods!')
 
-            #Create light only timestamps
-            elif j == (len(tone_timestamps)-1): #If values don't overlap add to light only list on last iteration
-                #add lower number to list
-                light_only_timestamps.append(light)
-                #Mark index for light as used so that it is not included again
-                used_light.add(i)
-                break #move to next number in onset_timestamps_1
+#Initialize lists to store dictionary values for conversion to dataframe
+mice=[]
+strat_value=[]
+plat_time=[]
+np_time=[]
 
-            else:
-                print(f'None type for light onset {i}, {light}')
-    
-    #Create tone only timestamps
-    for i, tone in enumerate (tone_timestamps):
-        if i in used_tone:
-            continue
-        else:
-            tone_only_timestamps.append(tone)
+#Store dictionary values in lists 
+for mouse, values in strat_data.items():
+    mice.append(mouse)
+    strat_value.append(values[0])
+    plat_time.append(values[1])
+    np_time.append(values[2])
 
-    #Create columns for each presentation type
-    df_proc['LIGHT ONLY'] = 0
-    df_proc['TONE ONLY'] = 0
-    df_proc['CO-PRESENTATION'] = 0
-    df_proc['TONE THEN LIGHT'] = 0
-    df_proc['LIGHT THEN TONE'] = 0
+#Create dataframe out of mount data
+light_task_strat_df = pd.DataFrame({'Original CSV':mice,
+                            'Task Strategy Score':strat_value,
+                            'Total Platform Time (s)':plat_time,
+                            'Total Nosepoke Time (s)':np_time})
 
-    #Use onset timestamps to fill dataframe
-    for onset in light_only_timestamps:
-        df_proc.loc[onset:onset+30, 'LIGHT ONLY'] = 1
-    
-    for onset in tone_only_timestamps:
-        df_proc.loc[onset:onset+30, 'TONE ONLY'] = 1
+#Designate output folder path and export a single csv
+export_path = input("Please enter file path for task strategy light only data:")
+filename = input("Please enter name of file to be exported for task strategy light only data:")
 
-    for onset in cop_timestamps:
-        df_proc.loc[onset:onset+30, 'CO-PRESENTATION'] = 1
+export_dir = Path(export_path)
+export_dir.mkdir(parents=True, exist_ok=True)
+light_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
+print('Light only task strategy data exported!')
 
-    for onset in ttl_timestamps:
-        df_proc.loc[onset:onset+45, 'TONE THEN LIGHT'] = 1
+#Analyze task strategies for all mice during tone only periods
+strat_data={}
+for name, data in processed_dfs.items():
+    strat_list = task_strat(data,'TONE ONLY')
+    strat_data[name] = strat_list
+print('Task Strategy analyzed for tone only periods!')
 
-    for onset in ltt_timestamps:
-        df_proc.loc[onset:onset+45, 'LIGHT THEN TONE'] = 1
+#Initialize lists to store dictionary values for conversion to dataframe
+mice=[]
+strat_value=[]
+plat_time=[]
+np_time=[]
 
-    return df_proc
+#Store dictionary values in lists 
+for mouse, values in strat_data.items():
+    mice.append(mouse)
+    strat_value.append(values[0])
+    plat_time.append(values[1])
+    np_time.append(values[2])
+
+#Create dataframe out of mount data
+tone_task_strat_df = pd.DataFrame({'Original CSV':mice,
+                            'Task Strategy Score':strat_value,
+                            'Total Platform Time (s)':plat_time,
+                            'Total Nosepoke Time (s)':np_time})
+
+#Designate output folder path and export a single csv
+export_path = input("Please enter file path for task strategy tone only data:")
+filename = input("Please enter name of file to be exported for task strategy tone only data:")
+
+export_dir = Path(export_path)
+export_dir.mkdir(parents=True, exist_ok=True)
+tone_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
+print('Tone only task strategy data exported!')
+
+#Analyze task strategies for all mice during copresentation periods
+strat_data={}
+for name, data in processed_dfs.items():
+    strat_list = task_strat(data,'CO-PRESENTATION')
+    strat_data[name] = strat_list
+print('Task Strategy analyzed for copresentation periods!')
+
+#Initialize lists to store dictionary values for conversion to dataframe
+mice=[]
+strat_value=[]
+plat_time=[]
+np_time=[]
+
+#Store dictionary values in lists 
+for mouse, values in strat_data.items():
+    mice.append(mouse)
+    strat_value.append(values[0])
+    plat_time.append(values[1])
+    np_time.append(values[2])
+
+#Create dataframe out of mount data
+cop_task_strat_df = pd.DataFrame({'Original CSV':mice,
+                            'Task Strategy Score':strat_value,
+                            'Total Platform Time (s)':plat_time,
+                            'Total Nosepoke Time (s)':np_time})
+
+#Designate output folder path and export a single csv
+export_path = input("Please enter file path for task strategy copresentation data:")
+filename = input("Please enter name of file to be exported for task strategy copresentation data:")
+
+export_dir = Path(export_path)
+export_dir.mkdir(parents=True, exist_ok=True)
+cop_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
+print('Copresentation task strategy data exported!')
+
+#Analyze task strategies for all mice during light then tone periods
+strat_data={}
+for name, data in processed_dfs.items():
+    strat_list = task_strat(data,'LIGHT THEN TONE')
+    strat_data[name] = strat_list
+print('Task Strategy analyzed for light then tone periods!')
+
+#Initialize lists to store dictionary values for conversion to dataframe
+mice=[]
+strat_value=[]
+plat_time=[]
+np_time=[]
+
+#Store dictionary values in lists 
+for mouse, values in strat_data.items():
+    mice.append(mouse)
+    strat_value.append(values[0])
+    plat_time.append(values[1])
+    np_time.append(values[2])
+
+#Create dataframe out of mount data
+ltt_task_strat_df = pd.DataFrame({'Original CSV':mice,
+                            'Task Strategy Score':strat_value,
+                            'Total Platform Time (s)':plat_time,
+                            'Total Nosepoke Time (s)':np_time})
+
+#Designate output folder path and export a single csv
+export_path = input("Please enter file path for task strategy light then tone data:")
+filename = input("Please enter name of file to be exported for task strategy light then tone data:")
+
+export_dir = Path(export_path)
+export_dir.mkdir(parents=True, exist_ok=True)
+ltt_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
+print('Light then tone task strategy data exported!')
+
+#Analyze task strategies for all mice during tone then light periods
+strat_data={}
+for name, data in processed_dfs.items():
+    strat_list = task_strat(data,'TONE THEN LIGHT')
+    strat_data[name] = strat_list
+print('Task Strategy analyzed for tone then light periods!')
+
+#Initialize lists to store dictionary values for conversion to dataframe
+mice=[]
+strat_value=[]
+plat_time=[]
+np_time=[]
+
+#Store dictionary values in lists 
+for mouse, values in strat_data.items():
+    mice.append(mouse)
+    strat_value.append(values[0])
+    plat_time.append(values[1])
+    np_time.append(values[2])
+
+#Create dataframe out of mount data
+ttl_task_strat_df = pd.DataFrame({'Original CSV':mice,
+                            'Task Strategy Score':strat_value,
+                            'Total Platform Time (s)':plat_time,
+                            'Total Nosepoke Time (s)':np_time})
+
+#Designate output folder path and export a single csv
+export_path = input("Please enter file path for task strategy tone then light data:")
+filename = input("Please enter name of file to be exported for task strategy tone then light data:")
+
+export_dir = Path(export_path)
+export_dir.mkdir(parents=True, exist_ok=True)
+ttl_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
+print('Tone then light task strategy data exported!')
