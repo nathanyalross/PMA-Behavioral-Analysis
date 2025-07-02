@@ -76,7 +76,7 @@ if input('Analyze Nosepoke Timeseries data? please respond with Y for yes or N f
     #Analyze nosepoking timeseries data around light then tone copresentations
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CUE LIGHT ACTIVE', event_column_2 = 'NEW SPEAKER ACTIVE', merge = 'Loose')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','CUE LIGHT ACTIVE', event_column_2 = 'NEW SPEAKER ACTIVE', merge = 'Loose', time_after = 60)
         averaged_data[name] = df_averaged
     print('Timeseries light then tone Nosepoke Data Analyzed!')
 
@@ -89,7 +89,7 @@ if input('Analyze Nosepoke Timeseries data? please respond with Y for yes or N f
     #Analyze nosepoking timeseries data around tone then light copresentations
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','NEW SPEAKER ACTIVE', event_column_2 = 'CUE LIGHT ACTIVE', merge = 'Loose')
+        df_averaged = average_around_timestamp(data,'NOSE POKE ACTIVE','NEW SPEAKER ACTIVE', event_column_2 = 'CUE LIGHT ACTIVE', merge = 'Loose', time_after = 60)
         averaged_data[name] = df_averaged
     print('Timeseries tone then light Nosepoke Data Analyzed!')
 
@@ -143,7 +143,7 @@ if input('Analyze Platform Timeseries data? please respond with Y for yes or N f
     #Analyze platform timeseries data around light then tone copresentations
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'IN PLATFORM','CUE LIGHT ACTIVE', event_column_2 = 'NEW SPEAKER ACTIVE', merge = 'Loose')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','CUE LIGHT ACTIVE', event_column_2 = 'NEW SPEAKER ACTIVE', merge = 'Loose', time_after = 60)
         averaged_data[name] = df_averaged
     print('Timeseries light then tone Platform Data Analyzed!')
 
@@ -156,7 +156,7 @@ if input('Analyze Platform Timeseries data? please respond with Y for yes or N f
     #Analyze platform timeseries data around tone then light copresentations
     averaged_data={}
     for name, data in processed_dfs.items():
-        df_averaged = average_around_timestamp(data,'IN PLATFORM','NEW SPEAKER ACTIVE', event_column_2 = 'CUE LIGHT ACTIVE', merge = 'Loose')
+        df_averaged = average_around_timestamp(data,'IN PLATFORM','NEW SPEAKER ACTIVE', event_column_2 = 'CUE LIGHT ACTIVE', merge = 'Loose', time_after = 60)
         averaged_data[name] = df_averaged
     print('Timeseries tone then light Platform Data Analyzed!')
 
