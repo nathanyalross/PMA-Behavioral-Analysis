@@ -21,13 +21,16 @@ for name, data in dfs.items():
     downsampled_dfs[name] = df_downsampled
 print('Behavior Data Downsampled!')
 
-#Select necessary command file
-command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
+#OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
+#command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
+
+#OPTIONAL - If needed, set the names of your columns manually.
+#columns_of_interest = []
 
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data, command_df=command_df)
+    df_processed = process_behavior(data, ['CUE LIGHT ACTIVE'])#, command_df=command_df)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
