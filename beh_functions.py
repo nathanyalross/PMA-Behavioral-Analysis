@@ -11,17 +11,24 @@ def downsample_behavior(df, frequency_seconds=0.5):
     Args:
     df : The dataframe of behavior to be downsampled
     frequency_seconds : desired sampling frequency in seconds
+
+    Returns: 
+    df_downsampled: downsampled behavior dataframe
     """
     
     # Prepare the dataframe
     df = df.copy()
+    #Renames the first column, the time index, to a set name for consistency
     df = df.rename(columns={df.columns[0]: 'Time (s)'})
+    #Converts all value in the Time column to numeric values
     df['Time (s)'] = pd.to_numeric(df['Time (s)'], errors='coerce')
+    #Drops na values from the dataframe and resets the index to be the time column
     df = df.dropna(subset=['Time (s)']).reset_index(drop=True)
     
     # Create time bins
     min_time = df['Time (s)'].min()
     max_time = df['Time (s)'].max()
+    #Downsample data into averaged time bins depending on frequency value
     time_bins = pd.cut(df['Time (s)'], 
                       bins=int((max_time - min_time) / frequency_seconds),
                       include_lowest=True)
@@ -53,6 +60,9 @@ def process_behavior(df,
     cue_onsets: Optional dictionary of nsets matched with necessary cue to manually create columns.
         Ideally this will be unneeded.  
     cue_duration: duration of cue periods in seconds (default 30)
+
+    Returns: 
+    df_subset : processed dataframe
     """
 
     df_downsampled = df.copy()
@@ -82,27 +92,31 @@ def process_behavior(df,
             else:
                 #Notify user that this column is being created manually
                 print(f'Task phase {cue} not in command dataframe, using timestamps to create')
+                #Create a column for the unspecified cue if onsets are given
                 try:
                     df_subset[cue] = 0
                     for onset in cue_onsets[cue]:
                         df_subset.loc[onset:onset+cue_duration, cue] = 1
+                #If timestamps are not given then return a warning
                 except:
                     print(f'Warning! No timestamps given for {cue}, please correct command dataframe or give timestamps.')
     else:
         for cue in cues:
-            #If the cue list is left blank it can be assumed that all dataframes already have appropriate cues, no cue processing done
+            #If the cue is already in the columns, then you can check the next cue.
             if cue in df_subset.columns:
-                break
+                continue
+            #If the cue is not already in the columns then attempt to make the column using specified timestamps
             else:
                 print(f'Using timestamps to create cue {cue}')
                 if cue_onsets and cue in cue_onsets:  # null check
+                    #Initiate column for cue and fill with 1's for specified amount of cue time
                     df_subset[cue] = 0
                     for onset in cue_onsets[cue]:
                         df_subset.loc[onset:onset+cue_duration, cue] = 1
                 else:
                     print(f'Warning! No timestamps given for {cue}, please give timestamps.')
     
-    #Create ITI columns using newly added task cue data
+    #Create ITI columns using newly added task cues
     #Initialize lists to collect off of the onset and offset timestamps
     iti_onsets_all = []
     iti_offsets_all = []
@@ -135,7 +149,7 @@ def process_behavior(df,
     iti_onsets_all.sort()
     iti_offsets_all.sort()
     
-    # Fix the loop logic
+    # Create ITI column, avoiding overlapping cues
     for onset in iti_onsets_all:
         offset = next((off for off in iti_offsets_all if off > onset), None)
         
@@ -159,6 +173,8 @@ def import_csvs(folder_path, name_filter=None):
     Returns:
     dictionary of DataFrames, with filename as key and DataFrame as value
     """
+
+    #Initiate a dictionary to store dataframes
     dataframes = {}
     
     # Get all CSV files in the folder
@@ -178,13 +194,17 @@ def import_csvs(folder_path, name_filter=None):
         return {}
     
     for csv_file in csv_files:
+        #Iterate through csv_files and read them into csvs, keeping the name of the csv as the key for the dataframe
         try:
             df = pd.read_csv(csv_file)
             dataframes[csv_file.name] = df
+            #Return message saying that the dataframe was loaded
             print(f"Loaded: {csv_file.name}")
+        #If the csv file can't be loaded return an error message
         except Exception as e:
             print(f"Error loading {csv_file.name}: {e}")
     
+    #Print the status of loaded csv files
     filter_msg = f" (filtered by '{name_filter}')" if name_filter else ""
     print(f"Successfully loaded {len(dataframes)} CSV files{filter_msg}")
     return dataframes
@@ -193,7 +213,7 @@ def import_csvs(folder_path, name_filter=None):
 def export_csvs(df_dict, filename, export_path, 
                                   column_to_use=None, fill_missing=None):
     """
-    Consolidate dataframes and/or series together and export one csv with column titles corresponding to original data
+    Consolidate a dictionary of dataframes and/or series together and export one csv with column titles corresponding to name of original csvs
     
     Args:
     df_dict: dictionary of dataframes or series (key will become column name)
@@ -249,7 +269,7 @@ def export_csvs(df_dict, filename, export_path,
             continue
     
     if not data_series:
-        print("No valid data series found")
+        print("No valid data found")
         return None
     
     # Concatenate all series into one dataframe
@@ -271,6 +291,7 @@ def export_csvs(df_dict, filename, export_path,
     file_path = export_dir / f"{filename}.csv"
     consolidated_df.to_csv(file_path, index=True)
     
+    #Return parameters of the exported dataframe
     print(f"Consolidated dataframe exported to: {file_path}")
     print(f"Shape: {consolidated_df.shape}")
     print(f"Columns: {list(consolidated_df.columns)}")
@@ -287,10 +308,14 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
     value_column : column of data to quantify
     time_before : time before onset to include in analysis (seconds)
     time_after : time after onset to include in analysis (seconds)
+
+    Returns: 
+    mean_timeseries : a dataframe containing timeseries data for specified value and event combination
     """
     
-    # Get onset timestamps (0->1 transitions)
-    onset_mask = ((df_subset[event_column] > 0) & (df_subset[event_column] < 1) & (df_subset[event_column].diff() > 0)) | (df_subset[event_column]==1) & (df_subset[event_column].diff()==1)
+    # Get onset timestamps (0->non-zero transitions)
+    onset_mask = (df_subset[event_column] >0) & (df_subset[event_column].shift(1) == 0)
+    # Create a list of onset timestamps
     onset_timestamps = df_subset[onset_mask].index
     
     # Check that there are timestamps for this column
@@ -300,8 +325,6 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
     
     # Store all event-aligned data
     aligned_data = []
-
-    print(onset_timestamps)
     
     # Loop through each onset timestamp
     for timestamp in onset_timestamps:
@@ -314,6 +337,7 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
 
         window_data = df_subset.loc[mask, value_column].copy()
         
+        #If there is no data within the window continue to next timestamp
         if len(window_data) == 0:
             continue
             
@@ -401,7 +425,7 @@ def behavior_binning(df, value_column, event_column=None, bin_size=30, beh_freq 
         import pandas as pd
         return pd.Series(data=sum_nosepoke, index=time_axis)
     
-#Function to calculate the auc from input csvs that have are outputs from above average around timestamps function
+#Function to calculate the auc from input csvs that are outputs from the above average around timestamps function
 def calculate_auc(df, start=0, end=30):
     """
     Function to calculate the AUC over a designated timeframe from an already processed dataset
@@ -411,7 +435,8 @@ def calculate_auc(df, start=0, end=30):
     start : index to start the AUC calculation. Automatically set to 0, or when the cue starts
     end : index to for when to end the AUC calculation, typically when the cue turns off. Automatically set to 30, or 30 seconds after cue onset
     
-    returns a pandas series where the index is the column name for the auc calculation
+    Returns:
+    auc_data: a pandas series where the index is the column name for the auc calculation
     """
 
     #Set the time column as your index
@@ -445,12 +470,12 @@ def mount_speed(df, event_column, start_time=0, end_time=None):
     Args:
     df : dataframe containing processed and downsampled behavior data
     event_column : column name indicating when the event of interest is active (1) or inactive (0)
-    start_time : float, time in seconds after event onset to start analysis (default: 0)
-    end_time : optional float, time in seconds after event onset to end analysis.
+    start_time : time in seconds after event onset to start analysis (default: 0)
+    end_time : optional, time in seconds after event onset to end analysis.
                If None, analyzes until the event ends
     
     Returns: 
-    float - average speed of all mounting transitions that occur during the specified time period
+    Number of mounts and the average mount speed as a list
     """
     
     # Find all platform mounting transitions (0 -> non-zero)
@@ -462,8 +487,8 @@ def mount_speed(df, event_column, start_time=0, end_time=None):
         event_active_mask = df[event_column] == 1
         time_description = "entire event duration"
     else:
-        # Find event onset points (0 -> 1 transitions)
-        event_onset_mask = (df[event_column] == 1) & (df[event_column].diff() == 1)
+        # Find event onset points (0 -> non-zero transitions)
+        event_onset_mask = (df[event_column] >0) & (df[event_column].shift(1) == 0)
         event_onset_times = df[event_onset_mask].index
         
         if len(event_onset_times) == 0:
@@ -479,7 +504,7 @@ def mount_speed(df, event_column, start_time=0, end_time=None):
             
             if end_time is None:
                 # Find when this specific event ends
-                event_end_mask = (df[event_column] == 0) & (df[event_column].shift(1) == 1)
+                event_end_mask = (df[event_column] == 0) & (df[event_column].shift(1) > 0)
                 subsequent_ends = df[event_end_mask].index[df[event_end_mask].index > onset_time]
                 
                 if len(subsequent_ends) > 0:
@@ -531,7 +556,7 @@ def split_dfs(df, event_column, subset_start, subset_end, baseline=300):
     """
     
     # Find event onset points (0 -> 1 transitions)
-    event_onset_mask = (df[event_column] == 1) & (df[event_column].diff() == 1)
+    event_onset_mask = (df[event_column] >0) & (df[event_column].shift(1) == 0)
     true_indices = event_onset_mask[event_onset_mask].index
     onsets = true_indices.tolist()
     
@@ -777,6 +802,7 @@ def avoid_shock(df, shock_length=2.5):
             
         shock_list.append(shock_count)
 
+    #Convert list of shocks to dataframe
     shock_df= pd.DataFrame(shock_list)
 
     return shock_df
