@@ -37,22 +37,21 @@ def downsample_behavior(df, frequency_seconds=0.5):
 
 #The following function will keep only necessary behavior information and create new information for reward training days
 def process_behavior(df, 
+                    cues,
                     columns_of_interest=['TIME (S)', 'FREEZING', 'IN PLATFORM', 'NOSE POKE ACTIVE',
                                        'CUE LIGHT ACTIVE', 'SPEED (M/S)', 
                                        'FEEDER ACTIVE', 'NEW SPEAKER ACTIVE', 'NEW SHOCKER ACTIVE'],
                     command_df = None,
                     cue_onsets = None,
-                    cues=['NONE GIVEN'],
                     cue_duration = 30):
     """
     Args:
     df : downsampled behavior dataframe
+    cues: list of task cues as strings to produce in resulting dataframe. For reward stage this is usually just when the cue light is active,
+        but could be more than one in the case of two-port PMA. This is a required list.
     columns_of_interest: columns to keep from original behavior dataframe
     cue_onsets: Optional dictionary of nsets matched with necessary cue to manually create columns.
         Ideally this will be unneeded.  
-    cues: list of task cues as strings to produce in resulting dataframe. For reward stage this is usually just when the cue light is active,
-        but could be more than one in the case of two-port PMA, for example. 
-        If no cues need to be fixed or added, leave as default.
     cue_duration: duration of cue periods in seconds (default 30)
     """
 
@@ -80,9 +79,6 @@ def process_behavior(df,
                 df_subset[cue] = 0
                 #Set the values for the cue column equal to the command file so they all match
                 df_subset[cue] = command_df_proc[cue]
-            #If the cue is not in command dataframe then use the given timestamps to create necessary df
-            elif cue == 'NONE GIVEN':
-                break
             else:
                 #Notify user that this column is being created manually
                 print(f'Task phase {cue} not in command dataframe, using timestamps to create')
@@ -95,10 +91,10 @@ def process_behavior(df,
     else:
         for cue in cues:
             #If the cue list is left blank it can be assumed that all dataframes already have appropriate cues, no cue processing done
-            if cue == 'NONE GIVEN':
+            if cue in df_subset.columns:
                 break
             else:
-                print(f'Using timestamps to create task phase {cue}')
+                print(f'Using timestamps to create cue {cue}')
                 if cue_onsets and cue in cue_onsets:  # null check
                     df_subset[cue] = 0
                     for onset in cue_onsets[cue]:
@@ -304,6 +300,8 @@ def average_around_timestamp(df_subset,value_column, event_column, time_before=1
     
     # Store all event-aligned data
     aligned_data = []
+
+    print(onset_timestamps)
     
     # Loop through each onset timestamp
     for timestamp in onset_timestamps:
