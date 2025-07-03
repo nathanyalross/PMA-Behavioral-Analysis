@@ -4,7 +4,7 @@ A python based behavioral analysis pipeline designed to analyze mouse behavior i
 ## Code Installation 
 To best utilize and customize this pipeline I recommend downloading and using Visual Studio Code at https://code.visualstudio.com/download.
 
-Once Visual Studio code is installed you can clone the git repo using web URL or download a zip file containing all of the code under the 'Code' tab above.
+Once Visual Studio code is installed you can clone the git repo using web URL or download a zip file containing all of the code under the 'Code' tab above. Open the repository in VSCode before proceeding.
 
 ## UV
 Once the pipeline is installed on your computer you will need to download UV to ensure you have everything you need for the code to run properly.
@@ -14,6 +14,8 @@ Install UV through the powershell using installation instructions outlined here:
 
 Check that UV is installed by checking the version:
 `uv --version`
+
+A common issue with installation is uv not being properly added to PATH following installation. There should be instructions that pop up, but if you get lost use instructions documented here: https://docs.astral.sh/uv/reference/installer/ 
 
 ### Installing dependencies through UV
 Once UV is installed to your computer, you can install all needed dependencies with `uv sync`
@@ -25,6 +27,8 @@ To check that you have all necessary dependencies run `uv pip list` and make sur
 ## Pipeline Inputs 
 The input to this pipeline is behavior timeseries CSVs, this was initially designed for AnyMaze outputs. Include all outputs that contain behavioral information and cue information.
 
+The data is meant to be organized so that anymaze outputs for each day are in independent folders. So if you have 8 mice in a 10 day task, you should have 10 folders and 8 AnyMaze output csvs in each folder.
+
 ## Outputs
 This pipeline will have default outputs that are easily customizable. These include:
 
@@ -33,6 +37,7 @@ This pipeline will have default outputs that are easily customizable. These incl
 3) Calculations of the AUC of timeseries data.
 4) Task strategy score calculations to show how mice are behaving in different phases of the task - are they 'compulsive' or 'aversive'?
 5) Platform mount transition analysis to see how mice are approaching the platform during different phases of the task.
+6) Number of shocks avoided across the task, an avoidance being counted as a mouse being on the platform for the entire shock duration
 
 The functions this pipeline uses is designed to be easily adjusted for case-by-case use.
 
