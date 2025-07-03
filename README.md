@@ -20,7 +20,7 @@ A common issue with installation is uv not being properly added to PATH followin
 ### Installing dependencies through UV
 Once UV is installed to your computer, you can install all needed dependencies with `uv sync`
 
-After downloading the dependencies initiate a local virtual environment with `uv venv`
+After downloading the dependencies initiate a local virtual environment with `uv venv`. Make sure you activate the virtual environment after creating it using `.\.venv\Scripts\Activate.ps1`.
 
 To check that you have all necessary dependencies run `uv pip list` and make sure you have everything specified in the 'pyproject.toml' file
 
