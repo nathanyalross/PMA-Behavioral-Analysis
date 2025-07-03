@@ -1,6 +1,8 @@
+# Import modules to allow upstream integration of beh_functions file
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
+
 from beh_functions import downsample_behavior
 from beh_functions import process_behavior
 from beh_functions import import_csvs
@@ -25,6 +27,9 @@ print('Behavior Data Downsampled!')
 
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
 #command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
+
+#OPTIONAL - If needed, set the names of your columns manually.
+#columns_of_interest = []
 
 #Process all downsampled data keeping file name associated
 processed_dfs={}

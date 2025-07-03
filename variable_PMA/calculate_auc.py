@@ -1,6 +1,8 @@
+# Import modules to allow upstream integration of beh_functions file
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
+
 from beh_functions import calculate_auc
 from beh_functions import import_csvs
 from beh_functions import export_csvs

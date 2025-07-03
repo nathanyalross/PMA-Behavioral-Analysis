@@ -24,6 +24,13 @@ for name, data in dfs.items():
     downsampled_dfs[name] = df_downsampled
 print('Behavior Data Downsampled!')
 
+
+#OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
+#command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
+
+#OPTIONAL - If needed, set the names of your columns manually.
+#columns_of_interest = []
+
 #Create Dictionary of timestamps to be used for processing
 disc_cues=['CS+','CS-']
 disc_cues_onset={}
@@ -35,7 +42,7 @@ disc_cues_onset['CS-'] = [390, 480, 660, 930, 1110, 1200, 1380, 1650, 1830, 1920
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data, cue_onsets = disc_cues_onset, cues=disc_cues)
+    df_processed = process_behavior(data, disc_cues, cue_onsets = disc_cues_onset)
     processed_dfs[name] = df_processed
 print('Behavior Data Processed!')
 
