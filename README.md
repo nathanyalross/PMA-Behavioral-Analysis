@@ -20,9 +20,9 @@ A common issue with installation is uv not being properly added to PATH followin
 ### Installing dependencies through UV
 Once UV is installed to your computer, you can install all needed dependencies with `uv sync`
 
-After downloading the dependencies initiate a local virtual environment with `uv venv`. Make sure you activate the virtual environment after creating it using `.\.venv\Scripts\Activate.ps1`.
+After downloading the dependencies initiate a local virtual environment with `uv venv`. Try activating the virtual environment using `.\.venv\Scripts\Activate.ps1`. If you don't have the permissions to do this, try killing the command shell terminal and re-starting it or restarting VSCode. 
 
-To check that you have all necessary dependencies run `uv pip list` and make sure you have everything specified in the 'pyproject.toml' file
+To check that you have all necessary dependencies run `uv pip list` and make sure you have everything specified in the 'pyproject.toml' file.
 
 ## Pipeline Inputs 
 The input to this pipeline is behavior timeseries CSVs, this was initially designed for AnyMaze outputs. Include all outputs that contain behavioral information and cue information.
@@ -57,4 +57,4 @@ In powershell enter `py process_rew_data.py`, this will run the script to proces
 
 If processing discrimination phase data, enter `py process_disc_data.py`
 
-Use same `py script.py` logic to run any other script!
+Use same `py filename.py` logic to run any other script!
