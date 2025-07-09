@@ -638,9 +638,9 @@ def task_strat(df, event_column=None, beh_freq=2):
     elif np_time>plat_time:
         task_score = (1-(plat_time/np_time))
     elif np_time == plat_time:
-        if plat_time == 0 & np_time == 0:
+        if plat_time == 0 and np_time == 0:
             print('No values in platform or nosepoke column')
-            return None
+            return 'NO DATA'
         else:
             task_score = 0
     elif np_time == 0:
