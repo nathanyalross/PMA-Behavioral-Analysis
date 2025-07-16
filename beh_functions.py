@@ -67,6 +67,9 @@ def process_behavior(df,
 
     df_downsampled = df.copy()
 
+    #Fill NaN values with 0s
+    df_downsampled = df_downsampled.fillna(0)
+
     df_downsampled.columns = df_downsampled.columns.str.upper()
 
     df_subset = df_downsampled[columns_of_interest].copy()
@@ -665,7 +668,7 @@ def overlap_beh_processing(df):
 
     #Utilize NEW SPEAKER ACTIVE AND CUE LIGHT ON columns and the overlap of the columns to create new columns
     #Get onset timestamps for both event columns
-    light_mask = (df_proc['CUE LIGHT ACTIVE'] > 0) & (df_proc['CUE LIGHT ACTIVE'].diff() > 0)
+    light_mask = (df_proc['CUE LIGHT ACTIVE'] >0) & (df_proc['CUE LIGHT ACTIVE'].shift(1) == 0)
     light_timestamps= df_proc[light_mask].index
 
     # Check that there are timestamps for this column
@@ -673,7 +676,7 @@ def overlap_beh_processing(df):
         print(f"No onsets found for 'CUE LIGHT ACTIVE'")
         return pd.DataFrame()
 
-    tone_mask= (df_proc['NEW SPEAKER ACTIVE']>0) & (df_proc['NEW SPEAKER ACTIVE'].diff() > 0)
+    tone_mask = (df_proc['NEW SPEAKER ACTIVE'] >0) & (df_proc['NEW SPEAKER ACTIVE'].shift(1) == 0)
     tone_timestamps = df_proc[tone_mask].index
 
     # Check that there are timestamps for this column
@@ -691,45 +694,66 @@ def overlap_beh_processing(df):
     used_tone = set()
 
     #Look through timestamps and set light then tone onsets
-    for i, light in enumerate (light_timestamps):
-        for j, tone in enumerate (tone_timestamps):
-            #Create copresentation timestamps
-            if abs(light-tone) <=1 :
-                #Add timestamps from light column to copresentation timestamp list
-                cop_timestamps.append(light)
-                #Mark index for light as used so that it is not included again
-                used_light.add(i)
-                used_tone.add(j)
-                break #move to next number in onset_timestamps_1
-
-            #Create light then tone timestamps
-            elif -20 < light-tone < -5: #If the light presentation comes first
-                #Add timestamp from light column to ltt column
-                ltt_timestamps.append(light)
-                #Mark index for both indices as used
-                used_light.add(i)
-                used_tone.add(j)
-                break #move to next number in onset_timestamps_1
+    for i, light in enumerate(light_timestamps):
+        #If the light timestamp has already been used, continue to the next one
+        if i in used_light:
+            continue
+        
+        #Initiate conditions to false if light onset not already used
+        matched = False
+        best_match_type = None
+        
+        #Look through tone timestamps to find best match
+        for j, tone in enumerate(tone_timestamps):
+            #If tone has already been used, continue
+            if j in used_tone:
+                continue
+                
+            time_diff = light - tone
             
-            #Create tone then light timestamps
-            elif 5 < light-tone < 20: #If the tone presentation comes first
-                #Add timestamp from light column to ltt column
-                ttl_timestamps.append(tone)
-                #Mark index for light as used so that it is not included again
+            # Co-presentation (highest priority)
+            if abs(time_diff) <= 1:
+                #If presentations are together, then append to cop data
+                cop_timestamps.append(light)
+                #add light timestamp to used light timestamps
                 used_light.add(i)
+                #add tone timestamp to used tone timestamps
                 used_tone.add(j)
-                break #move to next number in onset_timestamps_1
-
-            #Create light only timestamps
-            elif j == (len(tone_timestamps)-1): #If values don't overlap add to light only list on last iteration
-                #add lower number to list
-                light_only_timestamps.append(light)
-                #Mark index for light as used so that it is not included again
+                #Set matched condition to True and end this iteration
+                matched = True
+                break
+            
+            # Light then tone
+            elif -20 < time_diff < -5:
+                #If there is no best match:
+                if best_match_type is None:
+                    #Set best match type to light then tone
+                    best_match_type = 'ltt'
+                    best_match_idx = j
+            
+            # Tone then light
+            elif 5.0 < time_diff < 20.0:
+                if best_match_type is None:
+                    #Set best match type to tone then light
+                    best_match_type = 'ttl'
+                    best_match_idx = j
+        
+        #If the cue is not already matched
+        if not matched:
+            if best_match_type is not None:
+                if best_match_type == 'ltt':
+                    #If best match type is ltt then append appropriate light onset
+                    ltt_timestamps.append(light)
+                if best_match_type == 'ttl':
+                    #If the best match type is ttl then append the appropriate tone onset
+                    ttl_timestamps.append(tone_timestamps[best_match_idx])
+                #Add used light and tone indices
                 used_light.add(i)
-                break #move to next number in onset_timestamps_1
-
+                used_tone.add(best_match_idx)
             else:
-                print(f'None type for light onset {i}, {light}')
+                # No matching tone found
+                light_only_timestamps.append(light)
+                used_light.add(i)
     
     #Create tone only timestamps
     for i, tone in enumerate (tone_timestamps):

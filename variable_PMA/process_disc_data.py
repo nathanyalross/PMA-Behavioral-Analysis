@@ -34,7 +34,7 @@ print('Behavior Data Downsampled!')
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data)#, command_df=command_df) 
+    df_processed = process_behavior(data, cues=['CUE LIGHT ACTIVE', 'NEW SPEAKER ACTIVE'])#, command_df=command_df) 
     processed_dfs[name] = df_processed
 
 #Continue with secondary processing to create columns for each presentation type
@@ -181,7 +181,7 @@ if input('Analyze Platform Timeseries data? please respond with Y for yes or N f
 if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze nosepoke histogram data around light only presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'NOSE POKE ACTIVE','LIGHT ONLY')
         binned_data[name] = df_binned
     print('Histogram Light Only Nosepoke Data Analyzed!')
@@ -194,7 +194,7 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 
     #Analyze nosepoke histogram data around tone only copresentation
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'NOSE POKE ACTIVE','TONE ONLY')
         binned_data[name] = df_binned
     print('Histogram Tone Only Nosepoke Data Analyzed!')
@@ -207,7 +207,7 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 
     #Analyze nosepoke histogram data around copresentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'NOSE POKE ACTIVE','CO-PRESENTATION')
         binned_data[name] = df_binned
     print('Histogram Copresentation Nosepoke Data Analyzed!')
@@ -220,7 +220,7 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 
     #Analyze nosepoke histogram data around light then tone presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'NOSE POKE ACTIVE','LIGHT THEN TONE', bin_size = 45)
         binned_data[name] = df_binned
     print('Histogram light then tone Nosepoke Data Analyzed!')
@@ -233,7 +233,7 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 
     #Analyze nosepoke histogram data around tone then light presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'NOSE POKE ACTIVE','TONE THEN LIGHT', bin_size = 45)
         binned_data[name] = df_binned
     print('Histogram tone then light Nosepoke Data Analyzed!')
@@ -247,7 +247,7 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 if input('Analyze Platform Histogram data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform histogram data around light only presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'IN PLATFORM','LIGHT ONLY')
         binned_data[name] = df_binned
     print('Histogram Light Only Platform Data Analyzed!')
@@ -260,7 +260,7 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
 
     #Analyze platform histogram data around tone only copresentation
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'IN PLATFORM','TONE ONLY')
         binned_data[name] = df_binned
     print('Histogram Tone Only Platform Data Analyzed!')
@@ -273,7 +273,7 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
 
     #Analyze platform histogram data around copresentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'IN PLATFORM','CO-PRESENTATION')
         binned_data[name] = df_binned
     print('Histogram Copresentation Platform Data Analyzed!')
@@ -286,7 +286,7 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
 
     #Analyze platform histogram data around light then tone presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'IN PLATFORM','LIGHT THEN TONE', bin_size = 45)
         binned_data[name] = df_binned
     print('Histogram light then tone Platform Data Analyzed!')
@@ -299,7 +299,7 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
 
     #Analyze platform histogram data around tone then light presentations
     binned_data={}
-    for name, data in processed_dfs.items():
+    for name, data in processed_var_dfs.items():
         df_binned = behavior_binning(data,'IN PLATFORM','TONE THEN LIGHT', bin_size = 45)
         binned_data[name] = df_binned
     print('Histogram tone then light Platform Data Analyzed!')
