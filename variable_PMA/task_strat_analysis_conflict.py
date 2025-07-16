@@ -33,7 +33,7 @@ print('Behavior Data Downsampled!')
 #Process all downsampled data keeping file name associated
 processed_dfs={}
 for name, data in downsampled_dfs.items():
-    df_processed = process_behavior(data, cues = ['NEW SPEAKER ACTIVE', 'CUE LIGHT ACTIVE'])#, command_df=command_df)
+    df_processed = process_behavior(data, cues=['CUE LIGHT ACTIVE', 'NEW SPEAKER ACTIVE'])#, command_df=command_df) 
     processed_dfs[name] = df_processed
 
 #Continue with secondary processing to create columns for each presentation type
@@ -45,7 +45,7 @@ print('Behavior Data Processed!')
 
 #Analyze task strategies for all mice during light only periods
 strat_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     strat_list = task_strat(data,'LIGHT ONLY')
     strat_data[name] = strat_list
 print('Task Strategy analyzed for light only periods!')
@@ -80,7 +80,7 @@ print('Light only task strategy data exported!')
 
 #Analyze task strategies for all mice during tone only periods
 strat_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     strat_list = task_strat(data,'TONE ONLY')
     strat_data[name] = strat_list
 print('Task Strategy analyzed for tone only periods!')
@@ -115,7 +115,7 @@ print('Tone only task strategy data exported!')
 
 #Analyze task strategies for all mice during copresentation periods
 strat_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     strat_list = task_strat(data,'CO-PRESENTATION')
     strat_data[name] = strat_list
 print('Task Strategy analyzed for copresentation periods!')
@@ -150,7 +150,7 @@ print('Copresentation task strategy data exported!')
 
 #Analyze task strategies for all mice during light then tone periods
 strat_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     strat_list = task_strat(data,'LIGHT THEN TONE')
     strat_data[name] = strat_list
 print('Task Strategy analyzed for light then tone periods!')
@@ -185,7 +185,7 @@ print('Light then tone task strategy data exported!')
 
 #Analyze task strategies for all mice during tone then light periods
 strat_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     strat_list = task_strat(data,'TONE THEN LIGHT')
     strat_data[name] = strat_list
 print('Task Strategy analyzed for tone then light periods!')

@@ -45,7 +45,7 @@ print('Behavior Data Processed!')
 
 #Analyze speed around mounting activity during tone only Presentations
 mount_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE ONLY')
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods!')
@@ -69,7 +69,7 @@ cs_mount_df = pd.DataFrame({'Original CSV':mice,
 
 #Analyze speed around mounting activity during tone only for the first 25 seconds of the cue, before shock onset
 mount_data_pre_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE ONLY', end_time=25)
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods preceding shock onset!')
@@ -90,7 +90,7 @@ cs_mount_df['Average speed pre-Shock'] = mount_speeds
 
 #Analyze speed around mounting activity during tone only for the last 5 seconds, during and just before shock onset
 mount_data_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE ONLY', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods during shock onset!')
@@ -123,7 +123,7 @@ print('Tone only mount data exported!')
 
 #Analyze speed around mounting activity during copresentations
 mount_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'CO-PRESENTATION')
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods!')
@@ -147,7 +147,7 @@ cs_mount_df = pd.DataFrame({'Original CSV':mice,
 
 #Analyze speed around mounting activity during copresentations for the first 25 seconds of the cue, before shock onset
 mount_data_pre_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'CO-PRESENTATION', end_time=25)
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods preceding shock onset!')
@@ -168,7 +168,7 @@ cs_mount_df['Average speed pre-Shock'] = mount_speeds
 
 #Analyze speed around mounting activity during copresentations for the last 5 seconds, during and just before shock onset
 mount_data_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'CO-PRESENTATION', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods during shock onset!')
@@ -201,7 +201,7 @@ print('Copresentation mount data exported!')
 
 #Analyze speed around mounting activity during tone then light Presentations
 mount_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE THEN LIGHT')
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods!')
@@ -225,7 +225,7 @@ cs_mount_df = pd.DataFrame({'Original CSV':mice,
 
 #Analyze speed around mounting activity during tone then light for the first 25 seconds of the cue, before shock onset
 mount_data_pre_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE THEN LIGHT', end_time=25)
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods preceding shock onset!')
@@ -246,7 +246,7 @@ cs_mount_df['Average speed pre-Shock'] = mount_speeds
 
 #Analyze speed around mounting activity during tone then light for the last 5 seconds, during and just before shock onset
 mount_data_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE THEN LIGHT', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods during shock onset!')
@@ -279,7 +279,7 @@ print('tone then light mount data exported!')
 
 #Analyze speed around mounting activity during light then tone Presentations
 mount_data={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'LIGHT THEN TONE', start_time = 15)
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods!')
@@ -303,7 +303,7 @@ cs_mount_df = pd.DataFrame({'Original CSV':mice,
 
 #Analyze speed around mounting activity during light then tone for the first 25 seconds of the cue, before shock onset
 mount_data_pre_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'LIGHT THEN TONE', start_time = 15, end_time=40)
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods preceding shock onset!')
@@ -324,7 +324,7 @@ cs_mount_df['Average speed pre-Shock'] = mount_speeds
 
 #Analyze speed around mounting activity during light then tone for the last 5 seconds, during and just before shock onset
 mount_data_shock={}
-for name, data in processed_dfs.items():
+for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'LIGHT THEN TONE', start_time=40)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods during shock onset!')
