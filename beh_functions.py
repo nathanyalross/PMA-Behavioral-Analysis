@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from numpy import trapezoid
+import json
+import os
+from datetime import datetime
+from typing import List, Dict, Any
 
 #The following function will downsample behavior data to appropriate frequency
 def downsample_behavior(df, frequency_seconds=0.5):
@@ -830,3 +834,117 @@ def avoid_shock(df, shock_length=2.5):
     shock_df= pd.DataFrame(shock_list)
 
     return shock_df
+
+#Function to create/update meta-analysis json file
+def meta_anal(path: str, input_list: List[str], analyses: List[str]) -> Dict[str, Any]:
+    """
+    Function to create a meta-analysis json file that includes all input dataframe names and analyses ran
+
+    Will check path to see if a meta analysis has already been done, if a json file is in the path
+    it will append to that file
+
+    Args: 
+        path: path containing processed data
+        input_list: list of names of input data as strings
+        analyses: names of analyses ran as strings
+
+    Returns:
+        meta_json: exports json file to path that includes meta data, overwriting existing one if needed
+    """
+    
+    # Define the meta-analysis file path
+    meta_file_path = os.path.join(path, "meta_analysis.json")
+    
+    # Initialize or load existing meta-analysis data
+    # If the json file already exists:
+    if os.path.exists(meta_file_path):
+        #try opening the existing json file
+        try:
+            with open(meta_file_path, 'r') as f:
+                meta_data = json.load(f)
+            print(f"Loaded existing meta-analysis file from {meta_file_path}")
+        #If opening fails, just report an error and create new json file
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error loading existing meta-analysis file: {e}")
+            print("Creating new meta-analysis file...")
+            meta_data = {}
+    #If there is no existing json file then a new file will be created
+    else:
+        meta_data = {}
+        print("Creating new meta-analysis file...")
+    
+    # Initialize structure if it doesn't exist
+    if "meta_analysis" not in meta_data:
+        meta_data["meta_analysis"] = {
+            "created_date": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat(),
+            "sessions": []
+        }
+    
+    # Update last_updated timestamp
+    meta_data["meta_analysis"]["last_updated"] = datetime.now().isoformat()
+    
+    # Create current session data
+    current_session = {
+        #Will identify which session this is in order
+        "session_id": len(meta_data["meta_analysis"]["sessions"]) + 1,
+        #Identifies time that the session started
+        "timestamp": datetime.now().isoformat(),
+        #Lists input dataframes
+        "input_datasets": input_list,
+        #Lists the analyses that were performed
+        "analyses_performed": analyses,
+        #Returns total number of datasets and analyses
+        "total_datasets": len(input_list),
+        "total_analyses": len(analyses)
+    }
+    
+    # Check if this exact session already exists (avoid duplicates)
+    session_exists = False
+    #Iterate through all of the sessions in the metadata
+    for session in meta_data["meta_analysis"]["sessions"]:
+        #If all of the session data matches a past session, then it will update the timestamp for identical session
+        if (session.get("input_datasets") == input_list and 
+            session.get("analyses_performed") == analyses):
+            session_exists = True
+            print("Identical session found. Updating timestamp...")
+            #Update timestamp of identical session (re-analyzed)
+            session["timestamp"] = datetime.now().isoformat()
+            break
+    
+    #If the current session does not exist then add the current session to metadata as new session
+    if not session_exists:
+        meta_data["meta_analysis"]["sessions"].append(current_session)
+        print(f"Added new session with {len(input_list)} datasets and {len(analyses)} analyses")
+    
+    # Add summary statistics
+    all_datasets = set()
+    all_analyses = set()
+    
+    #Look through all sessions in file and find all input dataframes and sessions used
+    for session in meta_data["meta_analysis"]["sessions"]:
+        all_datasets.update(session.get("input_datasets", []))
+        all_analyses.update(session.get("analyses_performed", []))
+    
+    #Create summary data
+    meta_data["meta_analysis"]["summary"] = {
+        "total_unique_datasets": len(all_datasets),
+        "total_unique_analyses": len(all_analyses),
+        "total_sessions": len(meta_data["meta_analysis"]["sessions"]),
+        "all_datasets_used": sorted(list(all_datasets)),
+        "all_analyses_used": sorted(list(all_analyses))
+    }
+    
+    # Ensure directory exists
+    os.makedirs(path, exist_ok=True)
+    
+    # Write the updated meta-analysis file
+    try:
+        with open(meta_file_path, 'w') as f:
+            json.dump(meta_data, f, indent=2, sort_keys=True)
+        print(f"Meta-analysis file saved to: {meta_file_path}")
+    except IOError as e:
+        print(f"Error saving meta-analysis file: {e}")
+        return None
+    
+    return meta_data
