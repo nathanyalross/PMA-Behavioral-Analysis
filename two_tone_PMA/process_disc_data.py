@@ -9,6 +9,11 @@ from beh_functions import import_csvs
 from beh_functions import average_around_timestamp
 from beh_functions import export_csvs
 from beh_functions import behavior_binning
+from beh_functions import meta_analysis
+
+#Create lists for input dataframes and analysis that has been ran
+input_titles = []
+ran_analysis = []
 
 #input folder of behavior files
 file_path = input("Please enter file path with raw behavior exports: ")
@@ -22,6 +27,7 @@ downsampled_dfs = {}
 for name, data in dfs.items():
     df_downsampled= downsample_behavior(data)
     downsampled_dfs[name] = df_downsampled
+    input_titles.append(name)
 print('Behavior Data Downsampled!')
 
 
@@ -73,6 +79,8 @@ if input('Analyze Nosepoke Timeseries during CS Presentation data? please respon
 
     export_csvs(averaged_data,filename,export_path)
 
+    ran_analysis.append('Nosepoke Timeseries CS+/CS-')
+
 if input('Analyze Platform Timeseries during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform timeseries data around CS+ copresentation
     averaged_data={}
@@ -99,6 +107,8 @@ if input('Analyze Platform Timeseries during CS Presentation data? please respon
     filename = input("Please enter name of file to be exported for CS- platform timeseries data:")
 
     export_csvs(averaged_data,filename,export_path)
+
+    ran_analysis.append('Platform Timeseries CS+/CS-')
 
 if input('Analyze Nosepoke Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze nosepoke histogram data around CS+ copresentation
@@ -127,6 +137,8 @@ if input('Analyze Nosepoke Histogram during CS Presentation data? please respond
 
     export_csvs(binned_data,filename,export_path)
 
+    ran_analysis.append('Nosepoke Histogram CS+/CS-')
+
 if input('Analyze Platform Histogram during CS Presentation data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform histogram data around CS+ copresentation
     binned_data={}
@@ -153,3 +165,9 @@ if input('Analyze Platform Histogram during CS Presentation data? please respond
     filename = input("Please enter name of file to be exported for CS- Platform histogram data:")
 
     export_csvs(binned_data,filename,export_path)
+
+    ran_analysis.append('Platform Histogram CS+/CS-')
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export')
+meta_analysis(meta_path, input_titles, ran_analysis)

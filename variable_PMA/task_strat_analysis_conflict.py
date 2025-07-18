@@ -9,6 +9,11 @@ from beh_functions import process_behavior
 from beh_functions import import_csvs
 from beh_functions import task_strat
 from beh_functions import overlap_beh_processing
+from beh_functions import meta_analysis
+
+#Create lists for input dataframes and analysis that has been ran
+input_titles = []
+ran_analysis = []
 
 #input folder of behavior files
 file_path = input("Please enter file path with raw behavior exports: ")
@@ -22,6 +27,7 @@ downsampled_dfs = {}
 for name, data in dfs.items():
     df_downsampled= downsample_behavior(data)
     downsampled_dfs[name] = df_downsampled
+    input_titles.append(name)
 print('Behavior Data Downsampled!')
 
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
@@ -78,6 +84,8 @@ export_dir.mkdir(parents=True, exist_ok=True)
 light_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Light only task strategy data exported!')
 
+ran_analysis.append('Light only Task Strategy')
+
 #Analyze task strategies for all mice during tone only periods
 strat_data={}
 for name, data in processed_var_dfs.items():
@@ -112,6 +120,8 @@ export_dir = Path(export_path)
 export_dir.mkdir(parents=True, exist_ok=True)
 tone_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Tone only task strategy data exported!')
+
+ran_analysis.append('Tone only Task Strategy')
 
 #Analyze task strategies for all mice during copresentation periods
 strat_data={}
@@ -148,6 +158,8 @@ export_dir.mkdir(parents=True, exist_ok=True)
 cop_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Copresentation task strategy data exported!')
 
+ran_analysis.append('Co-Presentation Task Strategy')
+
 #Analyze task strategies for all mice during light then tone periods
 strat_data={}
 for name, data in processed_var_dfs.items():
@@ -183,6 +195,8 @@ export_dir.mkdir(parents=True, exist_ok=True)
 ltt_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Light then tone task strategy data exported!')
 
+ran_analysis.append('Light then tone Task Strategy')
+
 #Analyze task strategies for all mice during tone then light periods
 strat_data={}
 for name, data in processed_var_dfs.items():
@@ -217,3 +231,9 @@ export_dir = Path(export_path)
 export_dir.mkdir(parents=True, exist_ok=True)
 ttl_task_strat_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Tone then light task strategy data exported!')
+
+ran_analysis.append('Tone then light Task Strategy')
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export')
+meta_analysis(meta_path, input_titles, ran_analysis)
