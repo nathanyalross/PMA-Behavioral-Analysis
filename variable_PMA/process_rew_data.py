@@ -8,6 +8,11 @@ from beh_functions import process_behavior
 from beh_functions import import_csvs
 from beh_functions import average_around_timestamp
 from beh_functions import export_csvs
+from beh_functions import meta_analysis
+
+#Create lists for input dataframes and analysis that has been ran
+input_titles = []
+ran_analysis = []
 
 #input folder of behavior files
 file_path = input("Please enter file path with behavior exports: ")
@@ -21,6 +26,7 @@ downsampled_dfs = {}
 for name, data in dfs.items():
     df_downsampled= downsample_behavior(data)
     downsampled_dfs[name] = df_downsampled
+    input_titles.append(name)
 print('Behavior Data Downsampled!')
 
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
@@ -43,8 +49,14 @@ for name, data in processed_dfs.items():
     averaged_data[name] = df_averaged
 print('Timeseries Analyzed!')
 
+ran_analysis.append('Nosepoke Timeseries Cue Light Active')
+
 #Designate output folder path and export a single csv
 export_path = input("Please enter file path for analysis export:")
 filename = input("Please enter name of file to be exported for reward nosepoking timeseries data:")
 
 export_csvs(averaged_data,filename,export_path)
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export')
+meta_analysis(meta_path, input_titles, ran_analysis)

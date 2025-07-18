@@ -9,6 +9,11 @@ from beh_functions import process_behavior
 from beh_functions import import_csvs
 from beh_functions import mount_speed
 from beh_functions import overlap_beh_processing
+from beh_functions import meta_analysis
+
+#Create lists for input dataframes and analysis that has been ran
+input_titles = []
+ran_analysis = []
 
 #input folder of behavior files
 file_path = input("Please enter file path with raw behavior exports: ")
@@ -22,6 +27,7 @@ downsampled_dfs = {}
 for name, data in dfs.items():
     df_downsampled= downsample_behavior(data)
     downsampled_dfs[name] = df_downsampled
+    input_titles.append(name)
 print('Behavior Data Downsampled!')
 
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
@@ -50,6 +56,8 @@ for name, data in processed_var_dfs.items():
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods!')
 
+ran_analysis.append('Mount entire Tone only')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -74,6 +82,8 @@ for name, data in processed_var_dfs.items():
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods preceding shock onset!')
 
+ran_analysis.append('Mount before tone only shock onset')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -94,6 +104,8 @@ for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE ONLY', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone only periods during shock onset!')
+
+ran_analysis.append('Mount during tone only shock onset')
 
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
@@ -128,6 +140,8 @@ for name, data in processed_var_dfs.items():
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods!')
 
+ran_analysis.append('Mount entire co-presentation')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -152,6 +166,8 @@ for name, data in processed_var_dfs.items():
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods preceding shock onset!')
 
+ran_analysis.append('Mount before co-presentation shock onset')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -172,6 +188,8 @@ for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'CO-PRESENTATION', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for copresentation periods during shock onset!')
+
+ran_analysis.append('Mount during co-presentation shock onset')
 
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
@@ -206,6 +224,8 @@ for name, data in processed_var_dfs.items():
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods!')
 
+ran_analysis.append('Mount entire tone then light')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -230,6 +250,8 @@ for name, data in processed_var_dfs.items():
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods preceding shock onset!')
 
+ran_analysis.append('Mount before light then tone shock onset')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -250,6 +272,8 @@ for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'TONE THEN LIGHT', start_time=25)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for tone then light periods during shock onset!')
+
+ran_analysis.append('Mount during tone then light shock onset')
 
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
@@ -284,6 +308,8 @@ for name, data in processed_var_dfs.items():
     mount_data[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods!')
 
+ran_analysis.append('Mount entire light then tone')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -308,6 +334,8 @@ for name, data in processed_var_dfs.items():
     mount_data_pre_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods preceding shock onset!')
 
+ran_analysis.append('Mount before tone then light shock onset')
+
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
 num_mounts=[]
@@ -328,6 +356,8 @@ for name, data in processed_var_dfs.items():
     mount_count, mount_speed_av = mount_speed(data,'LIGHT THEN TONE', start_time=40)
     mount_data_shock[name] = [mount_count,mount_speed_av]
 print('Average Mounting speed analyzed for light then tone periods during shock onset!')
+
+ran_analysis.append('Mount during light then tone shock onset')
 
 #Initialize lists to store dictionary values for conversion to dataframe
 mice=[]
@@ -352,3 +382,7 @@ export_dir = Path(export_path)
 export_dir.mkdir(parents=True, exist_ok=True)
 cs_mount_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Tone then light mount data exported!')
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export')
+meta_analysis(meta_path, input_titles, ran_analysis)

@@ -836,7 +836,7 @@ def avoid_shock(df, shock_length=2.5):
     return shock_df
 
 #Function to create/update meta-analysis json file
-def meta_anal(path: str, input_list: List[str], analyses: List[str]) -> Dict[str, Any]:
+def meta_analysis(path: str, input_list: List[str], analyses: List[str]) -> Dict[str, Any]:
     """
     Function to create a meta-analysis json file that includes all input dataframe names and analyses ran
 

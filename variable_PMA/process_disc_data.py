@@ -10,6 +10,11 @@ from beh_functions import average_around_timestamp
 from beh_functions import export_csvs
 from beh_functions import behavior_binning
 from beh_functions import overlap_beh_processing
+from beh_functions import meta_analysis
+
+#Create lists for input dataframes and analysis that has been ran
+input_titles = []
+ran_analysis = []
 
 #input folder of behavior files
 file_path = input("Please enter file path with raw behavior exports: ")
@@ -23,6 +28,7 @@ downsampled_dfs = {}
 for name, data in dfs.items():
     df_downsampled= downsample_behavior(data)
     downsampled_dfs[name] = df_downsampled
+    input_titles.append(name)
 print('Behavior Data Downsampled!')
 
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
@@ -111,6 +117,8 @@ if input('Analyze Nosepoke Timeseries data? please respond with Y for yes or N f
 
     export_csvs(averaged_data,filename,export_path)
 
+    ran_analysis.append('Nosepoke Timeseries all cue types')
+
 #Analyze platform timeseries data around different presentation types
 if input('Analyze Platform Timeseries data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform timeseries data around light only presentations
@@ -178,6 +186,8 @@ if input('Analyze Platform Timeseries data? please respond with Y for yes or N f
 
     export_csvs(averaged_data,filename,export_path)
 
+    ran_analysis.append('Platform Timeseries all cue types')
+
 if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze nosepoke histogram data around light only presentations
     binned_data={}
@@ -244,6 +254,8 @@ if input('Analyze Nosepoke Histogram data? please respond with Y for yes or N fo
 
     export_csvs(binned_data,filename,export_path)
 
+    ran_analysis.append('Nosepoke Histogram all cue types')
+
 if input('Analyze Platform Histogram data? please respond with Y for yes or N for no: ') in ('Y', 'y'):
     #Analyze platform histogram data around light only presentations
     binned_data={}
@@ -309,3 +321,9 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
     filename = input("Please enter name of file to be exported for tone then light platform histogram data:")
 
     export_csvs(binned_data,filename,export_path)
+
+    ran_analysis.append('Platform Histogram all cue types')
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export')
+meta_analysis(meta_path, input_titles, ran_analysis)
