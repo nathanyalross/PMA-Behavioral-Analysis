@@ -418,8 +418,8 @@ def behavior_binning(df, value_column, event_column=None, bin_size=30, beh_freq 
             # Check if there are events (value of 1) in the event_column during this bin
             bin_events = df[(df.index >= start_time) & (df.index < end_time)][event_column]
             
-            # If there are at least two events (value of 1) in this bin, include it
-            if (bin_events == 1).sum() >= 2:
+            # If there are at least 5 seconds of events (5 * beh_freq) in this bin, include it
+            if (bin_events == 1).sum() >= (5 * beh_freq):
                 cue_aligned_counts.append(sum_nosepoke[i])
                 cue_aligned_times.append(start_time)
         
