@@ -169,5 +169,5 @@ if input('Analyze Platform Histogram during CS Presentation data? please respond
     ran_analysis.append('Platform Histogram CS+/CS-')
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)

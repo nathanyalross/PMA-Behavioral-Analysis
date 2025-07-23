@@ -59,8 +59,33 @@ ran_analysis.append('Shock Avoidance Analysis')
 export_path = input("Please enter file path for shock avoidance export:")
 filename = input("Please enter name of file to be exported for shock avoidance data:")
 
+if input('Process shock avoidance data for individual cue types? Please respond with Y for yes or N for no: ') in ('Y','y'):
+     #Process shock avoidance data for Right cue light presentations
+    shock_av = {}
+    for name, data in processed_dfs.items():
+        shock_count = avoid_shock(data, 'R_CUE LIGHT ACTIVE')
+        shock_av[name]=shock_count
+    print('Right cue light Shock Data Processed!')
+
+    ran_analysis.append('Right cue light Shock Avoidance Analysis')
+
+    export_path = input("Please enter file path for right cue light shock avoidance export:")
+    filename = input("Please enter name of file to be exported for right cue light shock avoidance data:")
+
+     #Process shock avoidance data for left cue light presentations
+    shock_av = {}
+    for name, data in processed_dfs.items():
+        shock_count = avoid_shock(data, 'L_CUE LIGHT ACTIVE')
+        shock_av[name]=shock_count
+    print('Left cue light Shock Data Processed!')
+
+    ran_analysis.append('Left cue light Shock Avoidance Analysis')
+
+    export_path = input("Please enter file path for left cue light shock avoidance export:")
+    filename = input("Please enter name of file to be exported for left cue light shock avoidance data:")
+
 export_csvs(shock_av, filename, export_path)
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)

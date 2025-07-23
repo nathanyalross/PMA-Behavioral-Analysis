@@ -325,5 +325,5 @@ if input('Analyze Platform Histogram data? please respond with Y for yes or N fo
     ran_analysis.append('Platform Histogram all cue types')
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)

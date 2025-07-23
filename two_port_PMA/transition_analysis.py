@@ -213,3 +213,7 @@ export_dir = Path(export_path)
 export_dir.mkdir(parents=True, exist_ok=True)
 cs_mount_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('left cue light mount data exported!')
+
+#Create/upadate meta_analysis file
+meta_path = input('Please enter path for meta-analysis export: ')
+meta_analysis(meta_path, input_titles, ran_analysis)
