@@ -802,7 +802,7 @@ def avoid_shock(df, shock_length=2.5):
     shock_list: list of cumulative avoided shock counts
     """
     # Create mask for shock onsets
-    shock_mask = (df['NEW SHOCKER ACTIVE'] > 0) & (df['NEW SHOCKER ACTIVE'] < 1) & (df['NEW SHOCKER ACTIVE'].diff() >0)
+    shock_mask = (df['NEW SHOCKER ACTIVE'] >0) & (df['NEW SHOCKER ACTIVE'].shift(1) == 0)
     shock_timestamps = df[shock_mask].index
 
     # Check that there are onsets
