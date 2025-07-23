@@ -792,18 +792,27 @@ def overlap_beh_processing(df):
     return df_proc
 
 #Function to count number of avoided shocks
-def avoid_shock(df, shock_length=2.5):
+def avoid_shock(df, shock_length=2.5, event_column = None):
     """
     Args:
     df: downsampled and processed dataframe
     shock_length: length of administered shock (in seconds)
+    event_column: optional cue event column to subset selected shocks
     
     Returns:
     shock_list: list of cumulative avoided shock counts
     """
+
     # Create mask for shock onsets
-    shock_mask = (df['NEW SHOCKER ACTIVE'] >0) & (df['NEW SHOCKER ACTIVE'].shift(1) == 0)
-    shock_timestamps = df[shock_mask].index
+    # If a specific task phase is given only calculate for shocks during that phase
+    if event_column is None:
+        shock_mask = (df['NEW SHOCKER ACTIVE'] >0) & (df['NEW SHOCKER ACTIVE'].shift(1) == 0)
+        shock_timestamps = df[shock_mask].index
+    else:
+        #Only select onsets when the event column is active, or non-zero
+        shock_mask = (df['NEW SHOCKER ACTIVE'] >0) & (df['NEW SHOCKER ACTIVE'].shift(1) == 0) & (df[event_column] > 0)
+        shock_timestamps = df[shock_mask].index
+
 
     # Check that there are onsets
     if len(shock_timestamps) == 0:

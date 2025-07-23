@@ -384,5 +384,5 @@ cs_mount_df.to_csv(export_dir/f"{filename}.csv", index=True)
 print('Tone then light mount data exported!')
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)

@@ -121,5 +121,5 @@ print('Left cue light task strategy data exported!')
 ran_analysis.append('Left cue light Task Strategy')
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)

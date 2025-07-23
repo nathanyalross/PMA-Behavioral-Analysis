@@ -58,5 +58,5 @@ filename = input("Please enter name of file to be exported for reward nosepoking
 export_csvs(averaged_data,filename,export_path)
 
 #Create/upadate meta_analysis file
-meta_path = input('Please enter path for meta-analysis export')
+meta_path = input('Please enter path for meta-analysis export: ')
 meta_analysis(meta_path, input_titles, ran_analysis)
