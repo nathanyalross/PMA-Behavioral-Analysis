@@ -20,7 +20,7 @@ A common issue with installation is uv not being properly added to PATH followin
 ### Installing dependencies through UV
 Once UV is installed to your computer, you can install all needed dependencies with `uv sync`
 
-After downloading the dependencies initiate a local virtual environment with `uv venv`. Try activating the virtual environment using `.\.venv\Scripts\Activate.ps1`. If you don't have the permissions to do this, try killing the command shell terminal and re-starting it or restarting VSCode. 
+After downloading the dependencies initiate a local virtual environment with `uv venv`. Try activating the virtual environment using `.\.venv\Scripts\Activate.ps1`. If you don't have permissions for this, try running in command prompt instead of powershell. To switch default terminal profile go to View->Command Pallet->Search "Terminal: Select Default Profile"->Command Prompt. Try again in command prompt.
 
 To check that you have all necessary dependencies run `uv pip list` and make sure you have everything specified in the 'pyproject.toml' file.
 
