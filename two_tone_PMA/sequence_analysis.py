@@ -1,3 +1,6 @@
+import os
+import pandas as pd
+
 if input('Combine CS+ and CS- histograms into protocol order? Y/N: ') in ('Y', 'y'):
     # Ask user for file paths instead of relying on hardcoded names
     cs_plus_path = input("Please enter FULL path to CS+ histogram CSV: ").strip()
@@ -76,4 +79,4 @@ print(f"\n:white_check_mark: Combined pivoted histogram saved to: {pivot_path}")
 print(f":white_check_mark: Annotated trial data saved to: {annotated_path}")
 print(f":white_check_mark: Bin-level mean summary saved to: {summary_path}")
 print(f":white_check_mark: Trial-level summed→average summary saved to: {trial_level_summary_path}")
-ran_analysis.append('Combined Histograms & Sequence Analysis')
+#ran_analysis.append('Combined Histograms & Sequence Analysis')
