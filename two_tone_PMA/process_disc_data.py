@@ -30,7 +30,6 @@ for name, data in dfs.items():
     input_titles.append(name)
 print('Behavior Data Downsampled!')
 
-
 #OPTIONAL - Select command dataframe if all boxes don't get ttl signals.
 #command_df= (list(downsampled_dfs.values()))[2] #Creates a list of dataframes and then selects the 3rd one as command
 

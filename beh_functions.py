@@ -957,3 +957,82 @@ def meta_analysis(path: str, input_list: List[str], analyses: List[str]) -> Dict
         return None
     
     return meta_data
+
+def identify_cue_sequences(df, cue_names):
+    """
+    Identify cue sequences and create new columns for each sequence type.
+    
+    Parameters:
+    df: DataFrame with cue columns containing binary values
+    cue_names: List of 2 cue names (e.g., ['CS+', 'CS-'] or ['CueA', 'CueB'])
+    
+    Returns:
+    DataFrame with additional columns for all sequence combinations
+    """
+
+    # Get cue names
+    if len(cue_names) != 2:
+        raise ValueError("cue_names must contain exactly 2 cue names")
+    
+    cue1, cue2 = cue_names
+    
+    # Validate that both cue columns exist
+    if cue1 not in df.columns or cue2 not in df.columns:
+        raise ValueError(f"Columns {cue1} and/or {cue2} not found in dataframe")
+    
+    # Create a copy to avoid modifying original data
+    result_df = df.copy()
+    
+    # Initialize new sequence columns dynamically
+    sequence_cols = [f'{cue1}>{cue1}', f'{cue1}>{cue2}', f'{cue2}>{cue1}', f'{cue2}>{cue2}']
+    for col in sequence_cols:
+        result_df[col] = 0
+    
+    # Create a combined cue indicator: 1 for cue1, -1 for cue2, 0 for neither
+    cue_indicator = np.zeros(len(df))
+    cue_indicator[df[cue1] == 1] = 1
+    cue_indicator[df[cue2] == 1] = -1
+    
+    # Find cue onset positions (where cue changes from 0 to 1)
+    cue1_onsets = df[(df[cue1] >0) & (df[cue1].shift(1) == 0)].index
+    cue2_onsets = df[(df[cue2] >0) & (df[cue2].shift(1) == 0)].index
+    
+    # Combine and sort all onsets with their types
+    all_onsets = []
+    for onset in cue1_onsets:
+        all_onsets.append((onset, cue1))
+    for onset in cue2_onsets:
+        all_onsets.append((onset, cue2))
+    
+    # Sort by position
+    all_onsets.sort(key=lambda x: x[0])
+    
+    # Process sequential pairs
+    for i in range(len(all_onsets) - 1):
+        print(i)
+        current_onset, current_type = all_onsets[i]
+        next_onset, next_type = all_onsets[i + 1]
+        
+        # Determine sequence type
+        sequence_type = f"{current_type}>{next_type}"
+        
+        # Find the extent of the second cue presentation
+        if next_type == cue1:
+            # Find where cue1 becomes 0 after next_onset, or end of data
+            cue_end = next_onset
+            while cue_end < len(df) and df[cue1].loc[cue_end] == 1:
+                cue_end += 1
+            
+            # Copy cue1 values to the appropriate sequence column
+            result_df.loc[next_onset:cue_end-1, sequence_type] = df.loc[next_onset:cue_end-1, cue1]
+            
+        else:  # next_type == cue2
+            # Find where cue2 becomes 0 after next_onset, or end of data
+            cue_end = next_onset
+            while cue_end < len(df) and df[cue2].loc[cue_end] == 1:
+                cue_end += 1
+            
+            # Copy cue2 values to the appropriate sequence column
+            result_df.loc[next_onset:cue_end-1, sequence_type] = df.loc[next_onset:cue_end-1, cue2]
+    
+    return result_df
