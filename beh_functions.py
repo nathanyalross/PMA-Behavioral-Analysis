@@ -972,7 +972,7 @@ def identify_cue_sequences(df, cue_names):
 
     # Get cue names
     if len(cue_names) != 2:
-        raise ValueError("cue_names must contain exactly 2 cue names")
+        raise ValueError("cue_names must contain exactly 2 cue names. Leave github comment if more flexibility needed.")
     
     cue1, cue2 = cue_names
     
