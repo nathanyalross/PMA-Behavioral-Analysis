@@ -203,7 +203,10 @@ def import_csvs(folder_path, name_filter=None):
     for csv_file in csv_files:
         #Iterate through csv_files and read them into csvs, keeping the name of the csv as the key for the dataframe
         try:
-            df = pd.read_csv(csv_file)
+            #Strip quotes for importing csvs
+            csv_path = str(csv_file).strip('"\'')
+            #Read csv
+            df = pd.read_csv(csv_path)
             dataframes[csv_file.name] = df
             #Return message saying that the dataframe was loaded
             print(f"Loaded: {csv_file.name}")
