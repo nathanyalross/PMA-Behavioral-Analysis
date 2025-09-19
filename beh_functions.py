@@ -1009,7 +1009,6 @@ def identify_cue_sequences(df, cue_names):
     
     # Process sequential pairs
     for i in range(len(all_onsets) - 1):
-        print(i)
         current_onset, current_type = all_onsets[i]
         next_onset, next_type = all_onsets[i + 1]
         
