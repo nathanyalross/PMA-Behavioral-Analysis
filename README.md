@@ -37,12 +37,19 @@ This pipeline will have default outputs that are easily customizable. These incl
 3) Calculations of the AUC of timeseries data.
 4) Task strategy score calculations to show how mice are behaving in different phases of the task - are they 'compulsive' or 'aversive'?
 5) Platform mount transition analysis to see how mice are approaching the platform during different phases of the task.
-6) Number of shocks avoided across the task, an avoidance being counted as a mouse being on the platform for the entire shock duration
+6) Number of shocks avoided across the task, an avoidance being counted as a mouse being on the platform for the entire shock duration.
+7) Sequence analysis, where data during cues following a specified cue type is averaged to see how cue sequences affect behavior (two-port PMA only)
 
 The functions this pipeline uses is designed to be easily adjusted for case-by-case use.
 
 ## Designed use and adaptability
-The default scripts are designed to be used in a two-tone discrimation PMA task, where there are two stages: the reward learning stage where mice learn to nosepoke during cue light presentation for reward, and a discrimination stage where mice are presented tones and cue-lights together with two different frequency tones predicting a shock or no shock.
+The default scripts are designed to be used for PMA tasks, where there are two stages: the reward learning stage where mice learn to nosepoke during cue light presentation for reward, and a discrimination stage where mice are presented tones and cue-lights to investigate discrimination, with the following variations supported:
+
+Two-tone PMA, where two tones (CS+ and CS-) are presented with CS+ signalling a co-terminating footshock and CS- signalling safety, with nosepoke reward available during both cues.
+
+Two-port PMA, where a light signalling reward availability and a tone signalling a co-terminating footshock are interleaved throughout conflict.
+
+Variable conflict PMA, where there is one port and light and tone are interleaved.
 
 All functions are extensively documented to outline how to adapt parameters to your use. Make sure to read through all scripts and adjust as needed. Beginner-level python experience is helpful to adjust parameters.
 
